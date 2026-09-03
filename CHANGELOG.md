@@ -7,9 +7,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
-## [0.1.0] — Unreleased
+## [1.0.0] — 2026-09-03
 
-First implementation of the Vayes UI Core specification.
+First stable release. Every criterion in
+`vayes-ui-core-spec-pack/docs/17-acceptance-criteria.md` is met; the four that
+remain verified by review rather than by an automated test are named, with the
+reason, in `docs/acceptance-criteria.md`.
 
 ### Added
 
