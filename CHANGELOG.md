@@ -52,8 +52,17 @@ First implementation of the Vayes UI Core specification.
 
 **Tooling and tests**
 
-- 75 unit tests, 96 real-browser tests and 26 live CodeIgniter integration tests,
-  the last of which run under a strict Content-Security-Policy.
+- 75 unit tests, 293 real-browser tests across Chromium, Firefox and WebKit, and
+  26 live CodeIgniter integration tests, the last of which run under a strict
+  Content-Security-Policy.
+- Reference performance benchmarks from the specification: connection scaling,
+  reconnect cycles under stress, delegated large lists, repeated local updates
+  and fragment insertion. They assert structural invariants — handler counts,
+  node identity, scaling ratios — rather than wall-clock times.
+- An architecture gate (`npm run arch:check`) enforcing layer import direction,
+  the absence of DOM access in the transport layer, the ban on dynamic global
+  lookup and on `attachShadow` in the core, and a `// safe-html: <reason>`
+  annotation on every HTML sink.
 - ESLint with rules banning `eval` and implied eval, Prettier, a Vite build, a
   bundle-size and line-count budget, and a dependency-policy gate that fails on
   any production dependency or non-relative import in shipped source.
@@ -62,3 +71,10 @@ First implementation of the Vayes UI Core specification.
 ### Notes
 
 - Runtime dependencies: **none**.
+- Browser support is Chrome/Edge 116+, Firefox 124+, Safari 17.4+. The floor is
+  set by a single `AbortSignal.any()` call in `HttpClient`; an earlier draft
+  claimed Firefox 121+ and Safari 17+, which was wrong.
+- Adding Firefox and WebKit to the suite found one Chromium-shaped assertion:
+  the modal focus test asserted that `document.activeElement` stays inside the
+  dialog, which WebKit contradicts without focus ever escaping. It now asserts
+  the real contract — that no background control can be reached.

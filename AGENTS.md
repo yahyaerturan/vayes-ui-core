@@ -58,8 +58,8 @@ first.
 3. **Properties may be assigned before the class is defined.** Declare public
    accessors in `static properties`.
 4. **Untrusted data never touches `innerHTML`.** Use `textContent` and
-   properties. Static component templates may use template literals only when
-   nothing is interpolated.
+   properties. Any HTML write must carry a `// safe-html: <reason>` annotation
+   explaining why the content is trusted, or `npm run arch:check` fails.
 5. **A cancelled request is not an error.** Check `isAbortError()` before
    rendering a failure state.
 6. **Adding a public API needs two call sites.** Prefer a private helper until

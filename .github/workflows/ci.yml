@@ -19,6 +19,7 @@ jobs:
 
       - run: npm ci
       - run: npm run deps:check
+      - run: npm run arch:check
       - run: npm run lint
       - run: npm run format:check
       - run: npm run test:unit
@@ -26,8 +27,18 @@ jobs:
       - run: npm run size
 
   browser:
-    name: Real-browser tests
+    name: Real-browser tests (${{ matrix.project }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: browser
+            engine: chromium
+          - project: browser-firefox
+            engine: firefox
+          - project: browser-webkit
+            engine: webkit
     steps:
       - uses: actions/checkout@v4
 
@@ -37,13 +48,13 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:browser
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npx playwright test --project=${{ matrix.project }}
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report-browser
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
 
   integration:

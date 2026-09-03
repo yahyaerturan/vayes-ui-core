@@ -111,8 +111,8 @@ export class Counter extends Component {
             return;
         }
 
-        // Static, developer-authored structure: no interpolation of untrusted
-        // data happens here (docs/10-security.md).
+        // safe-html: a static, developer-authored literal with no interpolation
+        // at all. The value is written separately through textContent.
         this.innerHTML = `
             <button class="vui-counter__button" type="button" data-action="decrement" aria-label="Decrease">−</button>
             <output class="vui-counter__value" data-value>0</output>

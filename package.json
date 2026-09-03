@@ -36,10 +36,12 @@
     "format": "prettier --write \"**/*.{js,mjs,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,mjs,json,md}\"",
     "deps:check": "node scripts/check-runtime-deps.mjs",
+    "arch:check": "node scripts/check-architecture.mjs",
     "test:unit": "node --test \"tests/unit/**/*.test.js\"",
-    "test:browser": "playwright test --project=browser",
+    "test:browser": "playwright test --project=browser --project=browser-firefox --project=browser-webkit",
+    "test:browser:chromium": "playwright test --project=browser",
     "test:integration": "playwright test --project=integration",
-    "test": "npm run deps:check && npm run lint && npm run test:unit && npm run test:browser && npm run test:integration",
+    "test": "npm run deps:check && npm run arch:check && npm run lint && npm run test:unit && npm run test:browser && npm run test:integration",
     "build": "vite build",
     "size": "node scripts/check-bundle-size.mjs",
     "ci4:install": "node scripts/ci4-setup.mjs",
@@ -48,7 +50,7 @@
   "browserslist": [
     "chrome >= 116",
     "edge >= 116",
-    "firefox >= 121",
-    "safari >= 17"
+    "firefox >= 124",
+    "safari >= 17.4"
   ]
 }

@@ -33,6 +33,9 @@ const EVENT_HANDLER_ATTRIBUTE = /^on[a-z]/i;
  */
 export function parseFragment(html) {
     const template = document.createElement('template');
+    // safe-html: this is the trust boundary itself. The caller asserts the HTML
+    // is first-party server output; parsing happens in an inert template and the
+    // executable parts are removed below before any node is adopted.
     template.innerHTML = String(html);
 
     for (const script of template.content.querySelectorAll('script')) {

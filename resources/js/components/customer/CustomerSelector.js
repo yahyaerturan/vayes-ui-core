@@ -186,8 +186,9 @@ export class CustomerSelector extends Component {
         const listId = `${this.#uid}-list`;
         const statusId = `${this.#uid}-status`;
 
-        // Static structure only: every dynamic value below is written with
-        // textContent or a property, never interpolated into HTML.
+        // safe-html: the only interpolated values are `listId` and `statusId`,
+        // both derived from an internal instance counter. No server or user data
+        // reaches this template; results are rendered via textContent below.
         this.innerHTML = `
             <div class="vui-customer-selector__field">
                 <input

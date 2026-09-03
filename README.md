@@ -139,10 +139,20 @@ components still work under it with zero policy violations.
 
 ## Browser support
 
-Evergreen browsers: Chrome/Edge 116+, Firefox 121+, Safari 17+. The baseline is
-set by `AbortSignal.any()` and `<dialog>`. Nothing is transpiled to obsolete
-environments, and polyfills are added only when a supported browser
-demonstrably needs one.
+Chrome/Edge **116+**, Firefox **124+**, Safari **17.4+**.
+
+That floor is set by exactly one API: the single `AbortSignal.any()` call in
+`HttpClient`, used to compose a caller's cancellation with a configured timeout.
+Everything else in the library is supported considerably further back —
+`<dialog>`/`showModal()` since Firefox 98 and Safari 15.4, `replaceChildren()`
+since Firefox 78 and Safari 14.
+
+Nothing is transpiled to obsolete environments, and no polyfill is shipped
+speculatively. If you need to support Safari 17.0–17.3, the deliberate change is
+a fallback for that one call — not a build step.
+
+The test suite runs against all three engines (`npm run test:browser`), most
+recently Chromium 151, Firefox 153 and WebKit 26.5.
 
 ## Contributing rules that are not negotiable
 

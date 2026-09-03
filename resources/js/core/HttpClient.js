@@ -465,6 +465,9 @@ export class HttpClient {
             controller.abort();
         }, timeout);
 
+        // This single call sets the library's browser floor: Chrome 116,
+        // Firefox 124, Safari 17.4. Supporting older Safari means replacing it
+        // with a manual signal link here, and nothing else in the codebase.
         const signal = external
             ? AbortSignal.any([external, controller.signal])
             : controller.signal;
