@@ -80,6 +80,13 @@ export class ConfirmDialog extends Component {
     });
 
     render() {
+        // Recover the dialog we built on a previous mount. unmount() clears the
+        // reference, so without this a reconnect appends a second <dialog> and
+        // the two disagree about which one is open.
+        this.#dialog ??= /** @type {HTMLDialogElement|null} */ (
+            this.querySelector(':scope > dialog[data-confirm-dialog]')
+        );
+
         if (this.#dialog && this.contains(this.#dialog)) {
             return;
         }

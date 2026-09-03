@@ -7,6 +7,39 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
+## [1.3.0] — 2026-09-04
+
+### Added
+
+- `docs/installation.md` — three install routes (copy, package manager,
+  submodule) with the CodeIgniter wiring, a four-step verification checklist and
+  a symptom table. Copying works because every shipped import is relative, which
+  `deps:check` enforces.
+- `docs/authoring-components.md` rewritten as a numbered procedure: decide the
+  ownership mode, write the contract, register the prefix, implement, test,
+  document — followed by the six rules that catch people out and the test
+  matrix.
+- `examples/component-template/` — `<app-character-counter>`, a **working**
+  component to copy and rename rather than an abstract skeleton, annotated step
+  by step, with `tests/browser/example-template.spec.js` as the worked example of
+  the test matrix.
+- `docs/ai-prompts.md` — prompt templates for building components with a coding
+  agent: a new component, a complex async component, converting existing code,
+  reviewing, debugging, and adding a kit pattern. Includes a table of the
+  mistakes agents specifically make in this architecture and how to pre-empt
+  them.
+
+### Fixed
+
+- `<kit-confirm-dialog>` appended a second `<dialog>` on every reconnect.
+  `render()` checked a cached reference that `unmount()` had cleared, so it no
+  longer recognised the element it built last time. It now recovers the element
+  by querying the DOM, and a test counts them after two reconnect cycles.
+
+  The same bug appeared in the first draft of the component template and was
+  caught by its own test, which is why "recover previous output by querying the
+  DOM" is now stated as rule one for authors and for agents.
+
 ## [1.2.1] — 2026-09-03
 
 ### Fixed

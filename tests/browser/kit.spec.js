@@ -363,6 +363,26 @@ test.describe('kit-confirm-dialog', () => {
         expect(result.title).toContain('<img src=x onerror=');
     });
 
+    test('reconnecting does not append a second dialog', async ({ page }) => {
+        // render() runs again on every mount. Without recovering the element it
+        // built last time, each reconnect leaves another <dialog> behind and the
+        // component ends up driving the wrong one.
+        const counts = await page.evaluate(() => {
+            const host = document.querySelector('kit-confirm-dialog');
+            const parent = host.parentElement;
+            const before = host.querySelectorAll('dialog').length;
+
+            host.remove();
+            parent.append(host);
+            host.remove();
+            parent.append(host);
+
+            return { before, after: host.querySelectorAll('dialog').length };
+        });
+
+        expect(counts).toEqual({ before: 1, after: 1 });
+    });
+
     test('disconnecting resolves a pending question rather than hanging', async ({ page }) => {
         const resolved = await page.evaluate(async () => {
             const dialog = document.querySelector('kit-confirm-dialog');

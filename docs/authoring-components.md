@@ -1,73 +1,91 @@
-# Authoring a component
+# Creating a component
 
-The process, the decisions, and the checklist. If you want a quick worked
-example first, read [getting-started.md](getting-started.md).
+A numbered procedure, a runnable template to copy, and the rules that catch
+people out.
 
----
-
-## Before writing code: answer five questions
-
-Written down, in the component's own specification file. The template is
-`vayes-ui-core-spec-pack/COMPONENT_SPEC_TEMPLATE.md`, and the four reference
-components in [components/](components/) are worked examples.
-
-### 1. Who owns the markup?
-
-| Mode             | The server renders               | `render()` does      | Example         |
-| ---------------- | -------------------------------- | -------------------- | --------------- |
-| **Enhancement**  | all of it                        | nothing              | `<vui-tabs>`    |
-| **Client-owned** | an empty element                 | builds the structure | `<vui-counter>` |
-| **Hybrid**       | the content; the component wraps | adds a wrapper once  | `<vui-modal>`   |
-
-Prefer enhancement. Markup the server already renders is markup that works
-before JavaScript arrives, survives a failed asset load, and cannot be
-destroyed by a rerender.
-
-### 2. What is configuration and what is data?
-
-Attributes for anything an author writes in a view — strings, numbers, booleans,
-enums, URLs. Properties for anything JavaScript hands over — objects, arrays,
-services.
-
-Do not serialise an object into an attribute. If you find yourself writing
-`JSON.parse(this.getAttribute('config'))`, it is a property.
-
-### 3. What does it announce?
-
-Name the events before writing them. `entity:past-tense`. Decide the `detail`
-shape and treat it as an API contract, because it is one — changing it is a
-breaking change.
-
-Keep payloads small and explicit. Do not pass your internal state object out;
-you will not be able to change it afterwards.
-
-### 4. What does it own, and what must it release?
-
-List every listener, timer, observer, subscription and in-flight request. Each
-one needs a disposal story: bound to `this.signal`, or explicitly disposed in
-`unmount()`.
-
-### 5. How is it operated without a mouse?
-
-Which keys, what receives focus, what ARIA state changes. A component that
-cannot be driven from the keyboard is unfinished — that is the rule in
-`docs/12-accessibility.md`, not a preference.
+If you have never written one, do [getting-started.md](getting-started.md)
+first — it builds a small component end to end in about ten minutes.
 
 ---
 
-## Writing it
+## Start from the template
 
-### Skeleton
+Do not start from an empty file. `examples/component-template/` contains a
+**working** component — `<app-character-counter>` — annotated step by step, plus
+its test file and its specification.
+
+```bash
+cp examples/component-template/CharacterCounter.js  resources/js/components/YourThing.js
+cp tests/browser/example-template.spec.js           tests/browser/your-thing.spec.js
+```
+
+Then rename: the class, the tag in `define()`, the event names, the file header.
+Delete what you do not need. Everything left is a pattern you would otherwise
+have to rediscover.
+
+It counts characters in a form field — a small, real job chosen because it
+exercises the whole contract: attribute config, a rich property, observed
+attributes, idempotent rendering, listener and timer cleanup, incremental
+updates, a public event, and accessible announcements.
+
+---
+
+## The procedure
+
+### Step 1 — Decide the ownership mode
+
+This is the first question because everything else follows from it.
+
+| Mode             | The server renders | `render()`           | Example         |
+| ---------------- | ------------------ | -------------------- | --------------- |
+| **Enhancement**  | all the markup     | nothing              | `<vui-tabs>`    |
+| **Client-owned** | an empty element   | builds the structure | `<vui-counter>` |
+| **Hybrid**       | the content        | adds a wrapper once  | `<vui-modal>`   |
+
+**Prefer enhancement.** Markup the server already renders works before
+JavaScript arrives, survives a failed asset load, and cannot be destroyed by a
+rerender.
+
+### Step 2 — Write the contract down first
+
+Before implementing. Copy `vayes-ui-core-spec-pack/COMPONENT_SPEC_TEMPLATE.md`
+into `docs/components/your-thing.md` and fill in:
+
+- **Attributes** — name, type, default, observed?
+- **Properties** — name, type, default, reflected?
+- **Methods** — parameters, return, side effects, failure behaviour
+- **Events** — name, bubbles, cancelable, `detail` shape, when
+- **DOM contract** — what the server owns, what you create, stable hooks
+- **Accessibility** — semantics, keys, focus, ARIA
+- **Non-goals** — what this will never do
+
+Ten minutes here saves an afternoon. The `detail` shape in particular is a
+contract you cannot change later without a major version.
+
+### Step 3 — Register your prefix
+
+Once, at boot, before importing any component:
+
+```js
+import { setAllowedPrefixes } from '@vayes/ui-core';
+
+setAllowedPrefixes(['vui-', 'app-']);
+```
+
+`define()` rejects anything outside the allowlist. That is deliberate: three
+naming conventions in one codebase happens by accident, never on purpose.
+
+### Step 4 — Implement
 
 ```js
 import { Component } from '../../core/Component.js';
 import { define } from '../../core/register.js';
 
-export class Thing extends Component {
-  static properties = Object.freeze(['data']);
+export class YourThing extends Component {
+  static properties = Object.freeze(['data']); // ← survives pre-upgrade assignment
 
   static get observedAttributes() {
-    return ['disabled'];
+    return ['disabled']; // ← only what you react to while mounted
   }
 
   static defaults = Object.freeze({ limit: 20 });
@@ -87,54 +105,106 @@ export class Thing extends Component {
     }
   }
 
-  render() {} // create owned markup, idempotently
+  render() {} // create owned markup — must be idempotent
   bindEvents() {} // listeners, always with { signal: this.signal }
   unmount() {} // dispose what the signal does not cover
 }
 
-define('vui-thing', Thing);
+define('app-your-thing', YourThing);
 ```
 
-### The five rules that matter
+### Step 5 — Test it
 
-**1. `render()` runs again on every reconnect.** Detect your own prior output:
+Every applicable row of the matrix below, in a real browser. Start with the
+reconnect test; it catches the most bugs per line.
+
+### Step 6 — Document it
+
+Fill in the spec from step 2 with what you actually built, and link it from
+`docs/components/`.
+
+---
+
+## The six rules that matter
+
+### 1. `render()` runs again on every reconnect
+
+It must recognise its own previous output. **Recover the reference from the DOM**
+— do not rely on a cached field, because `unmount()` clears it:
 
 ```js
 render() {
-    if (this.#elements && this.contains(this.#elements.list)) {
+    this.#output ??= this.querySelector(':scope > [data-output]');
+
+    if (this.#output && this.contains(this.#output)) {
         return;
     }
-    // …build
+
+    // …build it
 }
 ```
 
-**2. Bind every listener with the signal.** Any target — the element,
-`document`, `window`, a bus:
+Get this wrong and every reconnect appends a second copy. This exact bug shipped
+in this repository's own kit, in a component whose tests otherwise passed —
+because nothing counted the elements after a reconnect.
+
+Alternatively, replace rather than append (`this.innerHTML = …`), which is
+idempotent by construction but throws away any state inside.
+
+### 2. Bind every listener with the signal
+
+Any target — the element, `document`, `window`, a bus:
 
 ```js
 document.addEventListener('keydown', this.handleKey, { signal: this.signal });
 ```
 
-`this.signal` throws if you touch it while unmounted, which is the intended
-correction: a listener registered outside a mount cycle is one nothing will
-clean up. Never bind in the constructor.
+Never in the constructor. `this.signal` throws while unmounted, and that throw is
+the correction: a listener registered outside a mount cycle is one nothing will
+clean up.
 
-**3. Declare public properties.** `static properties = ['data']` rescues values
-assigned before the class loaded. Without it, the assignment is silently lost.
+### 3. Declare public properties
 
-**4. Update the smallest node.** Never rebuild a subtree to reflect one change —
-it destroys focus, selection, scroll position and uncontrolled input values.
+```js
+static properties = Object.freeze(['data']);
+```
 
-**5. Do not emit on hydration.** Reading an initial value from an attribute is
-not a user action:
+Without it, `el.data = {...}` before the class loads creates an own property that
+shadows your accessor, and the value is silently lost. The bug appears only on
+slow connections — which is to say in production and never on your machine.
+
+### 4. Update the smallest node
+
+Never rebuild a subtree to reflect one change. Replacing DOM destroys focus, the
+text selection, the caret, scroll position, uncontrolled input values and any
+native widget state inside it.
+
+### 5. Do not emit on hydration
+
+Reading an initial value from an attribute is not a user action:
 
 ```js
 this.setValue(parsed, { emit: false });
 ```
 
-### Delegated actions
+Emit on the _transition_, not on every update — an event that fires on each
+keystroke is useless to a consumer.
 
-For anything with more than one control, or with controls that come and go:
+### 6. Untrusted data never touches HTML
+
+```js
+node.textContent = customer.name; // safe even if the name contains markup
+```
+
+A static template literal is fine when nothing is interpolated. Any HTML write
+needs a `// safe-html: <reason>` annotation or `npm run arch:check` fails. If you
+cannot write a convincing reason, use `textContent`.
+
+---
+
+## Delegated actions
+
+For anything with more than one control, or controls that come and go:
 
 ```js
 bindEvents() {
@@ -154,13 +224,15 @@ handleAction(action, trigger, event) {
 ```
 
 One listener covers every current and future descendant, so replacing inner
-markup never requires rebinding. Actions inside a nested custom element belong
-to that element, not to you — the boundary is enforced.
+markup never requires rebinding. Actions inside a nested custom element belong to
+that element — the boundary is enforced.
 
-The attribute value is data. It reaches an explicit `switch` in your code, never
-a lookup into `window` and never anything evaluated.
+The attribute value is data. It reaches an explicit `switch`, never a lookup into
+`window` and never anything evaluated.
 
-### Async work
+---
+
+## Async components
 
 ```js
 async search(query) {
@@ -174,13 +246,13 @@ async search(query) {
         const results = await this.service.search(query, { signal: this.#controller.signal });
 
         if (token !== this.#requestToken) {
-            return; // a newer request has already answered
+            return;                       // a newer request already answered
         }
 
         this.#render(results);
     } catch (error) {
         if (isAbortError(error) || token !== this.#requestToken) {
-            return; // cancelled, not failed
+            return;                       // cancelled, not failed
         }
 
         this.#setStatus('error');
@@ -188,52 +260,33 @@ async search(query) {
 }
 ```
 
-Three things are load-bearing here:
+Three things are load-bearing:
 
-- **abort the previous request** — otherwise responses race and the slower,
-  older one can win;
-- **check the token as well** — a request can be aborted after the server has
-  already replied, so the abort alone is not sufficient;
-- **stay silent on cancellation** — every superseded keystroke would otherwise
-  flash an error.
+- **abort the previous request**, or responses race and the older one can win;
+- **check the token too** — a request can be aborted _after_ the server replied,
+  so the abort alone is not enough;
+- **stay silent on cancellation**, or every superseded keystroke flashes an error.
 
 Dispose the controller in `unmount()`.
 
-### Untrusted data
+---
 
-Text goes through `textContent` or a property assignment. Never through HTML.
-
-```js
-const name = document.createElement('span');
-name.textContent = customer.name; // safe even if the name contains markup
-```
-
-A static template literal is fine when nothing is interpolated into it. If you
-must write HTML, `npm run arch:check` requires an annotation stating why it is
-safe:
-
-```js
-// safe-html: static literal, no interpolation; values are set via textContent below.
-this.innerHTML = `<div data-content></div>`;
-```
-
-### Accessibility
+## Accessibility
 
 Use the native element. `<button>`, `<input>`, `<dialog>`, `<details>` bring
 keyboard behaviour, focus handling and platform semantics that are tedious and
-error-prone to reconstruct.
+error-prone to rebuild.
 
-If your component wraps an internal control, it needs an accessible name —
-and this is easy to get wrong, because **a custom element is not a labelable
-element**. `<label for="my-thing">` beside `<my-thing id="my-thing">` labels
-nothing at all.
+If your component wraps a control, it needs an accessible name — and this is easy
+to get wrong, because **a custom element is not a labelable element**.
+`<label for="my-thing">` beside `<my-thing id="my-thing">` labels nothing.
+Forward the host's `aria-label` and `aria-labelledby` to the internal control;
+`<vui-customer-selector>` shows the full pattern.
 
-`<vui-customer-selector>` shows the pattern: forward the host's `aria-label` and
-`aria-labelledby` to the internal control, and resolve a `<label for>` written
-against the host. Do not let a `placeholder` be the accessible name — it
-disappears the moment the user types, and an automated audit will still pass.
+Never let a `placeholder` be the accessible name. It disappears as the user
+types, and an automated audit will still pass.
 
-State changes update ARIA alongside the visual change:
+Update ARIA alongside the visual change:
 
 ```js
 setLoading(loading) {
@@ -244,9 +297,7 @@ setLoading(loading) {
 
 ---
 
-## Testing it
-
-Every applicable row, in a real browser:
+## The test matrix
 
 | Scenario                                    | Required                      |
 | ------------------------------------------- | ----------------------------- |
@@ -254,14 +305,14 @@ Every applicable row, in a real browser:
 | Element exists before definition            | Yes                           |
 | Connect                                     | Yes                           |
 | Disconnect                                  | Yes                           |
-| Reconnect                                   | Yes                           |
-| No duplicate listener after reconnect       | Yes                           |
-| Attribute defaults, and invalid values      | Yes                           |
+| **Reconnect — no duplicated markup**        | Yes                           |
+| **Reconnect — no duplicated listener**      | Yes                           |
+| Attribute defaults, and unusable values     | Yes                           |
 | Attribute change while mounted              | If observed                   |
 | Rich property assignment                    | If exposed                    |
 | Property set before upgrade                 | If exposed                    |
 | User event produces the expected DOM change | Yes                           |
-| Public event name and detail                | If emitted                    |
+| Public event name and `detail`              | If emitted                    |
 | Bubbling                                    | If the contract says so       |
 | Keyboard operation                          | If interactive                |
 | Disabled state                              | If supported                  |
@@ -272,38 +323,52 @@ Every applicable row, in a real browser:
 | XSS-sensitive text                          | If it renders dynamic text    |
 | Accessible name                             | If it wraps a control         |
 
-The reconnect test is the one people skip and the one that catches real leaks:
+The two reconnect rows are the ones people skip, and between them they have
+caught more real bugs in this repository than every other row combined:
 
 ```js
 element.remove();
 root.append(element);
+
+expect(element.querySelectorAll('[data-output]').length).toBe(1); // not 2
 element.querySelector('button').click();
 expect(handlerCalls).toBe(1); // not 2
 ```
 
-And assert accessible names by querying for a role **and** its name, with
-`exact: true`. An axe run alone is not enough — in this project a clean audit
-coexisted with two unnamed widgets:
+Assert accessible names by role **and** name, with `exact: true`:
 
 ```js
 await expect(page.getByRole('combobox', { name: 'Find a customer', exact: true })).toHaveCount(1);
 ```
 
+An axe run alone is not enough — in this project a clean audit coexisted with two
+unnamed widgets.
+
 ---
 
 ## Before you call it done
 
-- [ ] A specification file in `docs/components/`, following the template.
-- [ ] Every attribute, property, method and event documented, with defaults.
-- [ ] The test matrix above, for every applicable row.
-- [ ] `npm test` passes — including `arch:check` and the three browser engines.
-- [ ] Non-goals written down. What this component will never do is as useful to
-      a future reader as what it does.
+- [ ] A specification in `docs/components/`.
+- [ ] Every attribute, property, method and event documented with its default.
+- [ ] Every applicable row of the matrix tested.
+- [ ] `npm test` passes — including `arch:check` and all three browser engines.
+- [ ] Non-goals written down. What it will never do is as useful to the next
+      reader as what it does.
 
-## When you want to add something to the core
+---
 
-Do not, until two components need it. Prefer a private method, then a shared
-helper in the component directory, and only then the core.
+## Adding to the core
 
-The core is 707 lines. It is reviewable in one sitting, and that is a feature
-worth more than any individual convenience.
+Don't, until two components need it. Prefer a private method, then a shared
+helper beside the components, and only then the core.
+
+The core is 707 lines. Being reviewable in one sitting is worth more than any
+individual convenience.
+
+---
+
+## Working with an AI agent
+
+This repository is written to be worked on by coding agents — see
+[ai-prompts.md](ai-prompts.md) for prompts that produce components which pass
+these gates instead of ones you have to rewrite.

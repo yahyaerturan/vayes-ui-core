@@ -25,9 +25,14 @@ Reading the DOM and the source should be enough to answer:
 ## Install
 
 ```bash
-npm install
-npx playwright install chromium
+npm install github:yahyaerturan/vayes-ui-core#v1.2.1
 ```
+
+Or copy `resources/js/` into your project — every import is relative, so it works
+with no bundler and no resolution step.
+
+Full instructions, including CodeIgniter wiring and a verification checklist:
+**[docs/installation.md](docs/installation.md)**.
 
 ## Quick start
 
