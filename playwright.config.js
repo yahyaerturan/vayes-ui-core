@@ -3,11 +3,16 @@ import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * The demo CodeIgniter application is installed on demand (`npm run
- * ci4:install`). Its dev server is only registered when it exists, so the
- * browser project stays runnable in a checkout without PHP.
+ * The demo CodeIgniter application's sources are committed, but the framework
+ * itself is installed on demand (`composer install --working-dir=ci4`).
+ *
+ * The probe is `ci4/vendor/autoload.php` rather than `ci4/public/index.php`,
+ * because only the former answers the question that matters: *can this server
+ * actually start?* The front controller is in the repository, so testing for it
+ * is always true — which is how CI ended up waiting 60 seconds for a PHP server
+ * on runners that had neither Composer dependencies nor PHP.
  */
-const hasCi4App = existsSync(new URL('./ci4/public/index.php', import.meta.url));
+const hasCi4App = existsSync(new URL('./ci4/vendor/autoload.php', import.meta.url));
 
 /**
  * Two kinds of project, two servers:
