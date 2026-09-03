@@ -7,6 +7,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
+## [1.2.1] — 2026-09-03
+
+### Fixed
+
+- **Dialog text was unreadable in dark mode** (reported). The title and labels
+  inside `<vui-modal>` rendered black on a dark panel. A `<dialog>` does not
+  inherit text colour from the page: the user-agent stylesheet sets
+  `dialog { color: CanvasText }`, which is a real declaration and breaks
+  inheritance, and `CanvasText` stays black while `color-scheme` is light. Fixed
+  by declaring `color-scheme` on the root — which also corrects native form
+  controls and scrollbars — and by stating the colour explicitly on both
+  dialogs.
+
+### Changed
+
+- The showcase accessibility audit is now an enumerated table of every overlay
+  state crossed with both themes, replacing hand-written cases. The bug above
+  escaped because the audit opened the dropdown, the confirm dialog and a toast,
+  but never the invite modal — a missing case rather than a missing assertion. A
+  test also asserts the mechanism directly, so a regression names its own cause.
+  Both were verified by reintroducing the bug from source and confirming they
+  fail.
+
 ## [1.2.0] — 2026-09-03
 
 ### Added

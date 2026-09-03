@@ -272,6 +272,9 @@
       max-width: 96rem;
     }
   }
+  .m-auto {
+    margin: auto;
+  }
   .mx-auto {
     margin-inline: auto;
   }
@@ -737,6 +740,14 @@
     color: var(--color-slate-400);
   }
 }
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  :root.dark {
+    color-scheme: dark;
+  }
+}
 @layer components {
   kit-dropdown {
     position: relative;
@@ -966,6 +977,10 @@
     }
     &:where(.dark, .dark *) {
       background-color: var(--color-slate-800);
+    }
+    color: var(--color-slate-900);
+    &:where(.dark, .dark *) {
+      color: var(--color-slate-100);
     }
   }
   kit-confirm-dialog [data-panel] {
@@ -1207,6 +1222,10 @@
     }
     &:where(.dark, .dark *) {
       background-color: var(--color-slate-800);
+    }
+    color: var(--color-slate-900);
+    &:where(.dark, .dark *) {
+      color: var(--color-slate-100);
     }
   }
   vui-tabs [role='tablist'] {

@@ -400,36 +400,89 @@ test.describe('showcase accessibility', () => {
             violation.nodes.map(node => `${violation.id} (${violation.impact}): ${node.html}`),
         );
 
-    test('the page has no violations, in either theme', async ({ page }) => {
-        expect(describeViolations(await new AxeBuilder({ page }).withTags(WCAG).analyze())).toEqual(
-            [],
-        );
+    /**
+     * Every overlay, in both themes.
+     *
+     * Enumerated rather than written one test at a time, because the gap this
+     * closes was a missing case: an earlier version audited the dropdown, the
+     * confirm dialog and a toast, but never opened the invite modal — where the
+     * title was rendering black on a dark panel. A table of states is harder to
+     * leave a hole in than a list of hand-written tests.
+     */
+    const STATES = [
+        { name: 'default', open: async () => {} },
+        {
+            name: 'dropdown open',
+            open: async page => page.locator('kit-dropdown [data-trigger]').first().click(),
+        },
+        {
+            name: 'confirm dialog open',
+            open: async page => {
+                await page.locator('kit-dropdown [data-trigger]').first().click();
+                await page.locator('[role="menuitem"][data-value="delete"]').first().click();
+                await expect(page.locator('kit-confirm-dialog dialog')).toBeVisible();
+            },
+        },
+        {
+            name: 'invite modal open',
+            open: async page => {
+                await page.locator('#modal-demo').click();
+                await expect(page.locator('vui-modal dialog')).toBeVisible();
+            },
+        },
+        {
+            name: 'toast showing',
+            open: async page => {
+                await page.locator('#toast-demo').click();
+                await expect(page.locator('[data-toast]')).toHaveCount(1);
+            },
+        },
+    ];
 
+    for (const theme of ['light', 'dark']) {
+        for (const state of STATES) {
+            test(`no violations — ${state.name}, ${theme} theme`, async ({ page }) => {
+                if (theme === 'dark') {
+                    await page.locator('#theme-toggle').click();
+                }
+
+                await state.open(page);
+
+                expect(
+                    describeViolations(await new AxeBuilder({ page }).withTags(WCAG).analyze()),
+                ).toEqual([]);
+            });
+        }
+    }
+
+    /**
+     * A <dialog> does not inherit text colour from the page: the user-agent
+     * stylesheet sets `color: CanvasText`, which is a real declaration and so
+     * breaks inheritance. Under a dark theme that paints black text on a dark
+     * panel — which is exactly what shipped, because axe was never pointed at
+     * this dialog. The contrast audits above would now catch it; this asserts
+     * the mechanism directly, so a regression names its own cause.
+     */
+    test('dialog content inherits a readable colour in dark mode', async ({ page }) => {
         await page.locator('#theme-toggle').click();
+        await page.locator('#modal-demo').click();
+        await expect(page.locator('vui-modal dialog')).toBeVisible();
 
-        expect(describeViolations(await new AxeBuilder({ page }).withTags(WCAG).analyze())).toEqual(
-            [],
-        );
-    });
+        const measured = await page.evaluate(() => {
+            const title = document.getElementById('invite-title');
+            const dialog = document.querySelector('vui-modal dialog');
 
-    test('no violations with a dropdown and a dialog open', async ({ page }) => {
-        await page.locator('kit-dropdown [data-trigger]').first().click();
-        expect(describeViolations(await new AxeBuilder({ page }).withTags(WCAG).analyze())).toEqual(
-            [],
-        );
+            return {
+                titleColor: getComputedStyle(title).color,
+                dialogColor: getComputedStyle(dialog).color,
+                rootScheme: getComputedStyle(document.documentElement).colorScheme,
+            };
+        });
 
-        await page.locator('[role="menuitem"][data-value="delete"]').first().click();
-        expect(describeViolations(await new AxeBuilder({ page }).withTags(WCAG).analyze())).toEqual(
-            [],
-        );
-    });
-
-    test('no violations with a toast showing', async ({ page }) => {
-        await page.locator('#toast-demo').click();
-        await expect(page.locator('[data-toast]')).toHaveCount(1);
-
-        expect(describeViolations(await new AxeBuilder({ page }).withTags(WCAG).analyze())).toEqual(
-            [],
-        );
+        expect(measured.titleColor).not.toBe('rgb(0, 0, 0)');
+        expect(measured.dialogColor).not.toBe('rgb(0, 0, 0)');
+        // color-scheme tells the browser too, so native controls and scrollbars
+        // inside the dialog follow the theme rather than staying light.
+        expect(measured.rootScheme).toBe('dark');
     });
 });

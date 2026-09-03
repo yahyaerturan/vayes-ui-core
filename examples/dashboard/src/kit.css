@@ -33,6 +33,26 @@
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
+@layer base {
+  /*
+   * Tell the browser which scheme is active, not just Tailwind.
+   *
+   * `@custom-variant dark` above only affects Tailwind's own `dark:` classes.
+   * Anything styled by the user-agent stylesheet — form controls, scrollbars,
+   * and the `CanvasText` keyword — still follows `color-scheme`, which stays
+   * light until you set it. That is how a <dialog> ends up painting black text
+   * on a dark panel: the UA rule `dialog { color: CanvasText }` resolves to
+   * black and, being a real declaration, breaks inheritance from <body>.
+   */
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+}
+
 @theme {
   --color-brand-50: oklch(0.97 0.02 255);
   --color-brand-100: oklch(0.93 0.05 255);
@@ -130,6 +150,10 @@
   kit-confirm-dialog dialog {
     @apply m-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-0 shadow-2xl;
     @apply backdrop:bg-slate-900/40 dark:border-slate-700 dark:bg-slate-800;
+    /* The UA sets `color: CanvasText` on <dialog>, which breaks inheritance
+       from <body>. Without an explicit colour every descendant that does not
+       set its own is black — including any content a consumer puts inside. */
+    @apply text-slate-900 dark:text-slate-100;
   }
 
   kit-confirm-dialog [data-panel] {
@@ -287,6 +311,9 @@
   vui-modal .vui-modal__dialog {
     @apply m-auto w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-2xl;
     @apply backdrop:bg-slate-900/40 dark:border-slate-700 dark:bg-slate-800;
+    /* See the note on kit-confirm-dialog: a <dialog> does not inherit text
+       colour from the page, so it must be stated. */
+    @apply text-slate-900 dark:text-slate-100;
   }
 
   vui-tabs [role='tablist'] {

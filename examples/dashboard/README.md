@@ -166,17 +166,44 @@ which is where Tailwind's build-time scan would silently miss it.
 `kit-button-secondary` is an ordinary class. `@utility` makes them composable
 and usable with variants.
 
-### Two collisions worth knowing about
+### Three collisions worth knowing about
 
-Both were found by testing this page, and both will hit you the moment you put
-these components into a Tailwind application:
+All three will hit you the moment you put a native `<dialog>` into a Tailwind
+application with a dark theme:
 
 - **A native `<dialog>` loses its centring.** The browser centres a modal dialog
   with `margin: auto`, and Tailwind's preflight resets every margin to zero. The
   fix is `m-auto` on the dialog, which `kit.css` applies.
+
 - **`dark:` follows the OS, not a class.** In v4 a `.dark` class on `<html>` does
   nothing until you declare
   `@custom-variant dark (&:where(.dark, .dark *));`.
+
+- **A `<dialog>` does not inherit text colour.** The user-agent stylesheet sets
+  `dialog { color: CanvasText }`. That is a real declaration, so it _breaks_
+  inheritance from `<body>` — and `CanvasText` stays black while `color-scheme`
+  is light. The result is black text on a dark panel, affecting every descendant
+  that does not set its own colour, including content a consumer puts inside.
+
+  Two things fix it, and `kit.css` does both:
+
+  ```css
+  /* 1. Tell the browser the scheme, not just Tailwind. This also fixes native
+        form controls and scrollbars inside the dialog. */
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  /* 2. State the colour explicitly, so it holds regardless. */
+  vui-modal .vui-modal__dialog {
+    @apply text-slate-900 dark:text-slate-100;
+  }
+  ```
+
+  This one shipped in 1.2.0 and was reported by a user. The audit had opened the
+  dropdown, the confirm dialog and a toast — but never this modal. The fix
+  included replacing those hand-written cases with an enumerated table of every
+  overlay in both themes, which is harder to leave a hole in.
 
 ---
 
@@ -202,8 +229,13 @@ scan only sees what you point it at.
 promise resolution, timer cleanup, XSS-sensitive rendering, and an axe audit in
 both light and dark themes.
 
+The audit is an enumerated table: every overlay state — default, dropdown open,
+confirm dialog open, invite modal open, toast showing — crossed with both
+themes. It is written that way because the one bug that escaped 1.2.0 escaped
+through a missing case, not a missing assertion.
+
 Untested example code is how a "fast start" turns into someone else's debugging
-session. Writing these tests found four real bugs: Escape not closing a dropdown
-when focus was still on the trigger, toasts frozen after a reconnect, a dialog
-pinned to the top-left under preflight, and four colour-contrast failures in
-dark mode.
+session. Writing these tests found six real bugs: Escape not closing a dropdown
+opened by mouse in Safari, toasts frozen after a reconnect, a dialog pinned to
+the top-left under preflight, four colour-contrast failures in dark mode, `dark:`
+doing nothing from a class, and black dialog text on a dark panel.
