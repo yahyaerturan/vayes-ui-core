@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="tr">
+    <head>
+        <meta charset="utf-8">
+        <title>Boot configuration fixture</title>
+        <meta name="app-base-url" content="https://app.test/">
+        <meta name="csrf-header" content="X-CSRF-TOKEN">
+        <meta name="csrf-token-name" content="csrf_test_name">
+        <meta name="csrf-token" content="boot-token-1">
+        <meta name="locale" content="tr">
+        <script type="application/json" id="app-config">
+            { "customerSearchEndpoint": "/api/customers/search", "featureFlags": { "beta": true } }
+        </script>
+    </head>
+    <body>
+        <main id="root"></main>
+    </body>
+</html>

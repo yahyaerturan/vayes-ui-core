@@ -1,0 +1,14 @@
+{
+  "printWidth": 100,
+  "tabWidth": 4,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "arrowParens": "avoid",
+  "endOfLine": "lf",
+  "overrides": [
+    { "files": "*.md", "options": { "tabWidth": 2, "proseWrap": "preserve" } },
+    { "files": "*.json", "options": { "tabWidth": 2 } }
+  ]
+}

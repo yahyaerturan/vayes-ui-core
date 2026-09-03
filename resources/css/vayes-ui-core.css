@@ -1,0 +1,108 @@
+/*
+ * Minimal structural styles for the reference components.
+ *
+ * Vayes UI Core is not a CSS framework (docs/21-styling.md). These rules cover
+ * only what behaviour depends on — visibility and layout primitives — and
+ * expose custom properties where a host design system will want to intervene.
+ * Bootstrap, Tailwind or an application stylesheet may override everything
+ * here, because components render into the Light DOM.
+ */
+
+vui-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vui-counter-gap, 0.5rem);
+}
+
+vui-counter .vui-counter__value {
+    min-width: var(--vui-counter-value-width, 3ch);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+vui-tabs {
+    display: block;
+}
+
+vui-tabs [role='tablist'] {
+    display: flex;
+    gap: var(--vui-tabs-gap, 0.25rem);
+}
+
+vui-tabs [role='tab'][aria-selected='true'] {
+    font-weight: 600;
+}
+
+vui-modal {
+    display: contents;
+}
+
+vui-modal .vui-modal__dialog {
+    max-width: var(--vui-modal-max-width, 32rem);
+    width: 100%;
+    border: var(--vui-modal-border, 1px solid rgb(0 0 0 / 0.15));
+    border-radius: var(--vui-modal-radius, 0.5rem);
+    padding: var(--vui-modal-padding, 1.25rem);
+}
+
+vui-customer-selector {
+    display: block;
+    position: relative;
+}
+
+vui-customer-selector .vui-customer-selector__field {
+    display: flex;
+    gap: 0.25rem;
+}
+
+vui-customer-selector .vui-customer-selector__input {
+    flex: 1 1 auto;
+}
+
+vui-customer-selector .vui-customer-selector__list {
+    position: absolute;
+    z-index: 20;
+    inset-inline: 0;
+    margin: 0.125rem 0 0;
+    padding: 0;
+    list-style: none;
+    max-height: var(--vui-selector-list-height, 16rem);
+    overflow-y: auto;
+    background: var(--vui-selector-list-background, Canvas);
+    border: 1px solid rgb(0 0 0 / 0.15);
+    border-radius: 0.375rem;
+}
+
+vui-customer-selector .vui-customer-selector__option {
+    display: flex;
+    flex-direction: column;
+    padding: 0.375rem 0.625rem;
+    cursor: pointer;
+}
+
+vui-customer-selector .vui-customer-selector__option.is-active,
+vui-customer-selector .vui-customer-selector__option:hover {
+    background: var(--vui-selector-option-active, Highlight);
+    color: var(--vui-selector-option-active-text, HighlightText);
+}
+
+vui-customer-selector .vui-customer-selector__option-email {
+    font-size: 0.85em;
+    opacity: 0.75;
+}
+
+vui-customer-selector[data-state='loading'] .vui-customer-selector__input {
+    background-image: none;
+}
+
+/* State is carried by semantic attributes, so CSS can hook it without JS
+   duplicating class names (docs/21-styling.md). */
+vui-customer-selector[data-state='error'] .vui-customer-selector__status {
+    color: var(--vui-selector-error-color, firebrick);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    vui-modal .vui-modal__dialog {
+        transition: none;
+    }
+}

@@ -1,0 +1,54 @@
+{
+  "name": "@vayes/ui-core",
+  "version": "0.1.0",
+  "description": "A small, standards-first component layer for server-rendered CodeIgniter 4 applications. Zero runtime dependencies.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "resources/js",
+    "docs",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": "./resources/js/core/index.js",
+    "./core": "./resources/js/core/index.js",
+    "./actions": "./resources/js/core/ActionRegistry.js",
+    "./ci4": "./resources/js/ci4/index.js",
+    "./components/*": "./resources/js/components/*",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@playwright/test": "^1.62.0",
+    "eslint": "^9.20.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "vite": "^6.0.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,mjs,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,mjs,json,md}\"",
+    "deps:check": "node scripts/check-runtime-deps.mjs",
+    "test:unit": "node --test \"tests/unit/**/*.test.js\"",
+    "test:browser": "playwright test --project=browser",
+    "test:integration": "playwright test --project=integration",
+    "test": "npm run deps:check && npm run lint && npm run test:unit && npm run test:browser && npm run test:integration",
+    "build": "vite build",
+    "size": "node scripts/check-bundle-size.mjs",
+    "ci4:install": "node scripts/ci4-setup.mjs",
+    "ci4:serve": "php -S 127.0.0.1:8081 -t ci4/public ci4/public/rewrite.php"
+  },
+  "browserslist": [
+    "chrome >= 116",
+    "edge >= 116",
+    "firefox >= 121",
+    "safari >= 17"
+  ]
+}

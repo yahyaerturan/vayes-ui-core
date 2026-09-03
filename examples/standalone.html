@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vayes UI Core — standalone example</title>
+    <link rel="stylesheet" href="../resources/css/vayes-ui-core.css">
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 0 auto; max-width: 44rem; padding: 2rem; line-height: 1.5; }
+        section { border-top: 1px solid rgb(0 0 0 / 0.1); margin-block: 1.5rem; padding-block-start: 1rem; }
+        [role='tab'] { background: none; border: 1px solid transparent; border-bottom-color: rgb(0 0 0 / 0.2); cursor: pointer; padding: 0.5rem 0.875rem; }
+        [role='tab'][aria-selected='true'] { border-color: rgb(0 0 0 / 0.2); border-bottom-color: transparent; border-radius: 0.375rem 0.375rem 0 0; }
+        [role='tabpanel'] { padding-block: 1rem; }
+        output#log { display: block; font-family: ui-monospace, monospace; font-size: 0.85rem; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    <h1>Vayes UI Core</h1>
+    <p>
+        No server, no build step, no dependencies — the components below are the
+        library source loaded as native ES modules. Serve this directory with
+        <code>node scripts/serve-static.mjs</code> and open
+        <code>/examples/standalone.html</code>.
+    </p>
+
+    <section>
+        <h2>Server-rendered enhancement</h2>
+        <p>The tabs below are plain HTML. The component adds ARIA state and keyboard support without rebuilding them.</p>
+
+        <vui-tabs>
+            <div role="tablist" aria-label="Example sections">
+                <button id="tab-a" type="button" role="tab" aria-controls="panel-a">Counter</button>
+                <button id="tab-b" type="button" role="tab" aria-controls="panel-b">Dialog</button>
+            </div>
+
+            <section id="panel-a" role="tabpanel">
+                <vui-counter value="3" step="3"></vui-counter>
+            </section>
+
+            <section id="panel-b" role="tabpanel">
+                <button type="button" id="open">Open the dialog</button>
+            </section>
+        </vui-tabs>
+    </section>
+
+    <section>
+        <h2>Client-owned dialog</h2>
+        <vui-modal aria-labelledby="dialog-title">
+            <h3 id="dialog-title">A native dialog</h3>
+            <p>Escape, the backdrop and the button below all route through the cancelable <code>modal:before-close</code> event.</p>
+            <button type="button" data-action="close">Close</button>
+        </vui-modal>
+    </section>
+
+    <section>
+        <h2>Event log</h2>
+        <p>Every component event bubbles to <code>document</code>, so one listener sees all of them.</p>
+        <output id="log" role="status" aria-live="polite"></output>
+    </section>
+
+    <script type="module">
+        import '../resources/js/components/common/Counter.js';
+        import '../resources/js/components/common/Tabs.js';
+        import '../resources/js/components/common/Modal.js';
+
+        const log = document.getElementById('log');
+        const modal = document.querySelector('vui-modal');
+
+        document.getElementById('open').addEventListener('click', event => {
+            modal.open({ invoker: event.currentTarget });
+        });
+
+        for (const name of ['tab:changed', 'counter:changed', 'modal:opened', 'modal:closed']) {
+            document.addEventListener(name, event => {
+                log.textContent = `${name} ${JSON.stringify(event.detail ?? {})}\n${log.textContent}`
+                    .split('\n')
+                    .slice(0, 8)
+                    .join('\n');
+            });
+        }
+    </script>
+</body>
+</html>

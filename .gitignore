@@ -1,0 +1,12 @@
+node_modules/
+public/build/
+test-results/
+playwright-report/
+.DS_Store
+ci4/vendor/
+ci4/writable/cache/*
+ci4/writable/logs/*
+ci4/writable/session/*
+ci4/writable/database/*.sqlite
+ci4/.env
+*.log

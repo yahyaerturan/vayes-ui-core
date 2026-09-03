@@ -1,0 +1,8 @@
+node_modules
+public/build
+ci4/vendor
+ci4/writable
+vayes-ui-core-spec-pack
+test-results
+playwright-report
+CHANGELOG.md
