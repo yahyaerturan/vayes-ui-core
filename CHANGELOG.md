@@ -7,6 +7,46 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
+## [1.2.0] — 2026-09-03
+
+### Added
+
+A curated Tailwind admin kit in `examples/dashboard/` — a runnable showcase,
+copy-paste patterns, and five behaviour components. It is example code: nothing
+is exported from the package or covered by semver, which keeps the library free
+of design-system opinions as docs/21-styling.md requires.
+
+- Patterns (markup and classes only): page header, stat tiles, cards, badges,
+  empty state, table shell, form fields.
+- Components: `kit-dropdown`, `kit-toast-host`, `kit-confirm-dialog`,
+  `kit-async-button`, `kit-sortable-table`.
+- Tailwind CSS 4 built with the CLI (`npm run kit:css`) into a committed
+  stylesheet, so the showcase opens on a fresh clone with no build step.
+- `tests/browser/kit.spec.js` — 26 tests covering keyboard behaviour, ARIA
+  state, promise resolution, timer cleanup, XSS-sensitive rendering and an axe
+  audit in both light and dark themes.
+
+No component contains a Tailwind class. Components toggle semantic state and
+styling lives in markup and `kit.css`, which keeps them usable under any CSS and
+means no class name is ever constructed in JavaScript, where Tailwind's
+build-time scan would miss it.
+
+### Fixed
+
+Writing the kit's tests found five bugs, all in the new example code:
+
+- Escape did not close a dropdown opened by mouse, because Safari does not focus
+  a button on click and the handler was scoped to the component. Escape is now
+  handled at the document and always returns focus to the trigger, while an
+  outside click or Tab away deliberately does not.
+- A toast left frozen on screen after its host was removed and reconnected.
+  Toasts are transient and are now discarded with their timers.
+- A native `<dialog>` pinned itself to the top left under Tailwind, whose
+  preflight resets the `margin: auto` that centres a modal dialog.
+- Four colour-contrast failures, two in each theme.
+- `dark:` had no effect from a class, because Tailwind v4 follows
+  `prefers-color-scheme` until `@custom-variant dark` is declared.
+
 ## [1.1.1] — 2026-09-03
 
 ### Documentation

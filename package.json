@@ -1,6 +1,6 @@
 {
   "name": "@vayes/ui-core",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A small, standards-first component layer for server-rendered CodeIgniter 4 applications. Zero runtime dependencies.",
   "type": "module",
   "license": "MIT",
@@ -25,10 +25,12 @@
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.20.0",
     "@playwright/test": "^1.62.0",
+    "@tailwindcss/cli": "^4.3.3",
     "axe-core": "^4.13.0",
     "eslint": "^9.20.0",
     "globals": "^15.14.0",
     "prettier": "^3.4.2",
+    "tailwindcss": "^4.3.3",
     "vite": "^6.0.0"
   },
   "scripts": {
@@ -45,6 +47,8 @@
     "test:integration": "playwright test --project=integration",
     "test": "npm run deps:check && npm run arch:check && npm run lint && npm run test:unit && npm run test:browser && npm run test:integration",
     "build": "vite build",
+    "kit:css": "tailwindcss -i examples/dashboard/src/kit.css -o examples/dashboard/kit.css",
+    "kit:watch": "tailwindcss -i examples/dashboard/src/kit.css -o examples/dashboard/kit.css --watch",
     "size": "node scripts/check-bundle-size.mjs",
     "ci4:install": "node scripts/ci4-setup.mjs",
     "ci4:serve": "php -S 127.0.0.1:8081 -t ci4/public ci4/public/rewrite.php"

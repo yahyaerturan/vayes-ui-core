@@ -1,0 +1,209 @@
+# Admin kit
+
+A curated set of admin-dashboard building blocks, styled with Tailwind CSS 4 and
+built on Vayes UI Core.
+
+```bash
+node scripts/serve-static.mjs 5173 .
+# open http://127.0.0.1:5173/examples/dashboard/index.html
+```
+
+`kit.css` is committed, so that works on a fresh clone with no build step.
+
+---
+
+## This is example code, not library API
+
+Nothing here is exported from the package, versioned, or covered by any
+compatibility promise. **Copy what you want into your application and own it
+from there.** The `kit-` prefix exists so that is obvious in the DOM: a `vui-`
+tag is the library, a `kit-` tag is something you copied.
+
+That is deliberate. `docs/21-styling.md` is explicit that Vayes UI Core is not a
+CSS framework and not a design system; shipping one inside the package would
+make every visual decision a versioned API and every restyle a breaking change.
+
+---
+
+## Patterns and components are different things
+
+**A card is not a component.** It is a `<div>` with classes. Wrapping it in a
+custom element would add a lifecycle, an upgrade path and a registration for no
+behaviour at all, and make it harder to style rather than easier.
+
+So the kit splits in two:
+
+| Patterns — markup only, in `index.html`                                       | Components — behaviour, in `js/`                                   |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Page header, stat tiles, cards, badges, empty state, table shell, form fields | Dropdown, toast host, confirm dialog, async button, sortable table |
+| Copy the markup and classes                                                   | Copy the file and the styles it relies on                          |
+
+If you find yourself writing a component with an empty `bindEvents()`, it is a
+pattern.
+
+---
+
+## Components
+
+### `<kit-dropdown>` — menu button
+
+```html
+<kit-dropdown placement="bottom-end">
+  <button type="button" data-trigger class="kit-button-secondary">Actions</button>
+  <div data-menu hidden>
+    <button type="button" role="menuitem" data-value="edit">Edit</button>
+    <button type="button" role="menuitem" data-value="delete" data-variant="danger">Delete</button>
+  </div>
+</kit-dropdown>
+```
+
+Keyboard: ArrowDown from the trigger opens and focuses the first item; arrows
+wrap; Home/End jump; Escape closes and returns focus; Tab dismisses without
+trapping. ARIA (`aria-haspopup`, `aria-expanded`, `aria-controls`) and the
+menu's accessible name are applied for you.
+
+Emits `dropdown:opened`, `dropdown:closed`, and `dropdown:selected` with
+`{ value, label }`.
+
+### `<kit-toast-host>` — notifications
+
+```html
+<kit-toast-host></kit-toast-host>
+```
+
+```js
+host.show({ variant: 'success', title: 'Saved', message: 'The customer was created.' });
+```
+
+One per page. `show()` returns an id for `dismiss(id)`. `timeout: 0` keeps a
+toast until dismissed. Removing the host clears every pending timer and
+discards the toasts — a notification is transient by definition.
+
+### `<kit-confirm-dialog>` — confirm a destructive action
+
+```js
+const ok = await dialog.confirm({
+  title: 'Delete customer?',
+  message: `${name} will be removed. This cannot be undone.`,
+  confirmLabel: 'Delete',
+  variant: 'danger',
+});
+```
+
+Returns a promise, because `if (await …)` reads exactly like the decision it
+represents. Escape and the backdrop decline. Focus lands on **Cancel**, not on
+the destructive button. Disconnecting resolves `false` rather than leaving the
+caller awaiting forever.
+
+### `<kit-async-button>` — in-flight state
+
+```html
+<kit-async-button id="save" busy-label="Saving…">
+  <button type="button" class="kit-button-primary">Save changes</button>
+</kit-async-button>
+```
+
+```js
+await saveButton.run(() => http.post('/api/customers', data, { json: true }));
+```
+
+Wraps a real `<button>`, so form association and native keyboard behaviour keep
+working. `run()` restores the button in a `finally`, including when the work
+throws — which is the bug it exists to prevent. Clicks during flight are
+swallowed at the capture phase, not merely blocked by `disabled`.
+
+Put the `id` on the **component**, not on the inner button. Getting that wrong
+is how `run()` becomes `undefined`.
+
+### `<kit-sortable-table>` — column sorting
+
+```html
+<kit-sortable-table client-sort sort-column="name" sort-direction="ascending">
+  <table class="kit-table">
+    <thead>
+      <tr>
+        <th data-sort="name">Name</th>
+        <th data-sort="spend" data-sort-type="number">Spend</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Ada Lovelace</td>
+        <td data-sort-value="4820">£4,820</td>
+      </tr>
+    </tbody>
+  </table>
+</kit-sortable-table>
+```
+
+Enhancement mode: the server owns the table. `data-sort-value` sorts a formatted
+cell by its underlying value. Header controls are wrapped in real `<button>`
+elements, so keyboard support comes from the platform.
+
+`client-sort` is **off by default**, because sorting only the visible page of a
+paginated table is a lie. Without it the component manages `aria-sort` and emits
+`table:sorted` so you can reload a server-sorted fragment.
+
+It sorts by moving existing rows, never by rebuilding them — so components,
+focus and open menus inside cells survive.
+
+**It does one thing.** No pagination, filtering, selection, virtualisation or
+fetching. `docs/15-reference-components.md` warns against starting with a
+DataTable for good reason.
+
+---
+
+## Two rules that make the styling work
+
+**1. No component contains a Tailwind class.** Components toggle semantic state
+— `hidden`, `aria-expanded`, `data-state`, `aria-sort` — and all styling lives
+in your markup and in `kit.css`. That keeps every component usable under
+Bootstrap or plain CSS, and it means no class name is ever built in JavaScript,
+which is where Tailwind's build-time scan would silently miss it.
+
+**2. Shared primitives are `@utility`, not classes in a layer.** In Tailwind v4
+`@apply` resolves utilities only, so `@apply kit-button-secondary` fails if
+`kit-button-secondary` is an ordinary class. `@utility` makes them composable
+and usable with variants.
+
+### Two collisions worth knowing about
+
+Both were found by testing this page, and both will hit you the moment you put
+these components into a Tailwind application:
+
+- **A native `<dialog>` loses its centring.** The browser centres a modal dialog
+  with `margin: auto`, and Tailwind's preflight resets every margin to zero. The
+  fix is `m-auto` on the dialog, which `kit.css` applies.
+- **`dark:` follows the OS, not a class.** In v4 a `.dark` class on `<html>` does
+  nothing until you declare
+  `@custom-variant dark (&:where(.dark, .dark *));`.
+
+---
+
+## Rebuilding the CSS
+
+```bash
+npm run kit:css     # build once
+npm run kit:watch   # rebuild on change
+```
+
+Source is `src/kit.css`. The output is committed so the showcase opens without a
+build.
+
+`@source` directives tell Tailwind where to scan. If you copy a component into a
+new location, add that path or its classes will not be generated — a build-time
+scan only sees what you point it at.
+
+---
+
+## Tested
+
+`tests/browser/kit.spec.js` drives this page: keyboard behaviour, ARIA state,
+promise resolution, timer cleanup, XSS-sensitive rendering, and an axe audit in
+both light and dark themes.
+
+Untested example code is how a "fast start" turns into someone else's debugging
+session. Writing these tests found four real bugs: Escape not closing a dropdown
+when focus was still on the trigger, toasts frozen after a reconnect, a dialog
+pinned to the top-left under preflight, and four colour-contrast failures in
+dark mode.

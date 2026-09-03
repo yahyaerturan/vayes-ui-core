@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en" class="h-full">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Admin kit — Vayes UI Core</title>
+        <link rel="stylesheet" href="./kit.css" />
+        <script type="module" src="./js/dashboard.js"></script>
+    </head>
+    <body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
+        <div class="mx-auto max-w-6xl p-6">
+            <!-- ============================================================
+                 PATTERN — Page header
+                 No JavaScript. Markup and classes only.
+                 ============================================================ -->
+            <header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold tracking-tight">Customers</h1>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Admin patterns and components built on Vayes UI Core.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        id="theme-toggle"
+                        class="kit-button-secondary"
+                        aria-pressed="false"
+                    >
+                        Toggle theme
+                    </button>
+                    <button type="button" id="modal-demo" class="kit-button-primary">
+                        Invite customer
+                    </button>
+                </div>
+            </header>
+
+            <!-- ============================================================
+                 PATTERN — Stat tiles
+                 ============================================================ -->
+            <section class="mb-8" aria-labelledby="stats-heading">
+                <h2 id="stats-heading" class="sr-only">Key figures</h2>
+
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="kit-card kit-card-body">
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Total customers</p>
+                        <p class="mt-2 text-3xl font-semibold tabular-nums">2,481</p>
+                        <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
+                            +12% this month
+                        </p>
+                    </div>
+
+                    <div class="kit-card kit-card-body">
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Active</p>
+                        <p class="mt-2 text-3xl font-semibold tabular-nums">1,904</p>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            76.7% of total
+                        </p>
+                    </div>
+
+                    <div class="kit-card kit-card-body">
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Pending review</p>
+                        <p class="mt-2 text-3xl font-semibold tabular-nums">38</p>
+                        <p class="mt-1 text-xs text-amber-700 dark:text-amber-400">7 over SLA</p>
+                    </div>
+
+                    <div class="kit-card kit-card-body">
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Seats</p>
+                        <div class="mt-2 flex items-center gap-3">
+                            <vui-counter value="4" step="1"></vui-counter>
+                            <span class="text-sm text-slate-500 dark:text-slate-400">
+                                =
+                                <output id="seats-total" class="font-semibold tabular-nums"
+                                    >48</output
+                                >
+                                / yr
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================
+                 COMPONENT — kit-sortable-table + kit-dropdown
+                 ============================================================ -->
+            <section class="mb-8" aria-labelledby="table-heading">
+                <div class="kit-card">
+                    <div class="kit-card-header">
+                        <h2 id="table-heading" class="kit-card-title">Recent customers</h2>
+                        <p
+                            id="sort-status"
+                            role="status"
+                            aria-live="polite"
+                            class="text-xs text-slate-500 dark:text-slate-400"
+                        ></p>
+                    </div>
+
+                    <kit-sortable-table client-sort sort-column="name" sort-direction="ascending">
+                        <table class="kit-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" data-sort="name">Name</th>
+                                    <th scope="col" data-sort="email">Email</th>
+                                    <th scope="col" data-sort="spend" data-sort-type="number">
+                                        Spend
+                                    </th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col"><span class="sr-only">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-name>Ada Lovelace</td>
+                                    <td>ada@example.test</td>
+                                    <td data-sort-value="4820">£4,820</td>
+                                    <td><span class="kit-badge-success">Active</span></td>
+                                    <td class="text-right">
+                                        <kit-dropdown placement="bottom-end">
+                                            <button
+                                                type="button"
+                                                data-trigger
+                                                class="kit-button-secondary"
+                                            >
+                                                Actions
+                                            </button>
+                                            <div data-menu hidden>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="edit"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="export"
+                                                >
+                                                    Export
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="delete"
+                                                    data-variant="danger"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </kit-dropdown>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td data-name>Grace Hopper</td>
+                                    <td>grace@example.test</td>
+                                    <td data-sort-value="12930">£12,930</td>
+                                    <td><span class="kit-badge-success">Active</span></td>
+                                    <td class="text-right">
+                                        <kit-dropdown placement="bottom-end">
+                                            <button
+                                                type="button"
+                                                data-trigger
+                                                class="kit-button-secondary"
+                                            >
+                                                Actions
+                                            </button>
+                                            <div data-menu hidden>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="edit"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="export"
+                                                >
+                                                    Export
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="delete"
+                                                    data-variant="danger"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </kit-dropdown>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td data-name>Alan Turing</td>
+                                    <td>alan@example.test</td>
+                                    <td data-sort-value="880">£880</td>
+                                    <td><span class="kit-badge-warning">Review</span></td>
+                                    <td class="text-right">
+                                        <kit-dropdown placement="bottom-end">
+                                            <button
+                                                type="button"
+                                                data-trigger
+                                                class="kit-button-secondary"
+                                            >
+                                                Actions
+                                            </button>
+                                            <div data-menu hidden>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="edit"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="export"
+                                                >
+                                                    Export
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="delete"
+                                                    data-variant="danger"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </kit-dropdown>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td data-name>Katherine Johnson</td>
+                                    <td>katherine@example.test</td>
+                                    <td data-sort-value="7410">£7,410</td>
+                                    <td><span class="kit-badge-neutral">Paused</span></td>
+                                    <td class="text-right">
+                                        <kit-dropdown placement="bottom-end">
+                                            <button
+                                                type="button"
+                                                data-trigger
+                                                class="kit-button-secondary"
+                                            >
+                                                Actions
+                                            </button>
+                                            <div data-menu hidden>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="edit"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="export"
+                                                >
+                                                    Export
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    data-value="delete"
+                                                    data-variant="danger"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </kit-dropdown>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </kit-sortable-table>
+                </div>
+            </section>
+
+            <!-- ============================================================
+                 COMPONENT — vui-tabs + kit-async-button
+                 ============================================================ -->
+            <section class="mb-8 grid gap-6 lg:grid-cols-2" aria-labelledby="panels-heading">
+                <h2 id="panels-heading" class="sr-only">Panels</h2>
+
+                <div class="kit-card">
+                    <div class="kit-card-body">
+                        <vui-tabs>
+                            <div role="tablist" aria-label="Account sections">
+                                <button
+                                    id="tab-general"
+                                    type="button"
+                                    role="tab"
+                                    aria-controls="panel-general"
+                                >
+                                    General
+                                </button>
+                                <button
+                                    id="tab-billing"
+                                    type="button"
+                                    role="tab"
+                                    aria-controls="panel-billing"
+                                >
+                                    Billing
+                                </button>
+                            </div>
+
+                            <section id="panel-general" role="tabpanel" class="pt-4">
+                                <label for="company" class="kit-label">Company name</label>
+                                <input id="company" class="kit-input" value="Example Ltd" />
+
+                                <div class="mt-4 flex items-center gap-3">
+                                    <kit-async-button id="save-settings" busy-label="Saving…">
+                                        <button type="button" class="kit-button-primary">
+                                            Save changes
+                                        </button>
+                                    </kit-async-button>
+
+                                    <label
+                                        class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"
+                                    >
+                                        <input type="checkbox" id="simulate-failure" />
+                                        Simulate failure
+                                    </label>
+                                </div>
+                            </section>
+
+                            <section id="panel-billing" role="tabpanel" class="pt-4">
+                                <p class="text-sm text-slate-600 dark:text-slate-400">
+                                    Billing is handled by the server. This panel exists to show that
+                                    tab content is ordinary server-rendered markup — the component
+                                    never rebuilds it.
+                                </p>
+                            </section>
+                        </vui-tabs>
+                    </div>
+                </div>
+
+                <!-- ====================================================
+                     PATTERN — Empty state
+                     ==================================================== -->
+                <div class="kit-card">
+                    <div
+                        class="kit-card-body flex flex-col items-center justify-center py-12 text-center"
+                    >
+                        <div
+                            class="mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100 text-xl dark:bg-slate-700"
+                            aria-hidden="true"
+                        >
+                            ⌥
+                        </div>
+                        <h3 class="text-sm font-semibold">No saved segments</h3>
+                        <p class="mt-1 max-w-xs text-sm text-slate-500 dark:text-slate-400">
+                            Segments let you group customers by any filter and reuse them later.
+                        </p>
+                        <button type="button" id="toast-demo" class="kit-button-secondary mt-4">
+                            Create a segment
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================================================
+             COMPONENT — vui-modal, kit-confirm-dialog, kit-toast-host
+             One of each per page.
+             ============================================================ -->
+        <vui-modal id="invite-modal" aria-labelledby="invite-title">
+            <h2 id="invite-title" class="text-lg font-semibold">Invite a customer</h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                They will receive an email with a link to complete their profile.
+            </p>
+
+            <div class="mt-4">
+                <label for="invite-email" class="kit-label">Email address</label>
+                <input id="invite-email" type="email" class="kit-input" />
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" class="kit-button-secondary" data-action="close">
+                    Cancel
+                </button>
+                <button type="button" class="kit-button-primary" data-action="close">
+                    Send invitation
+                </button>
+            </div>
+        </vui-modal>
+
+        <kit-confirm-dialog></kit-confirm-dialog>
+        <kit-toast-host></kit-toast-host>
+    </body>
+</html>

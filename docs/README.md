@@ -24,6 +24,7 @@ Start wherever matches what you are doing.
 | Document                                         | Contents                                                          |
 | ------------------------------------------------ | ----------------------------------------------------------------- |
 | [components/](components/)                       | One full specification per reference component.                   |
+| [../examples/dashboard/](../examples/dashboard/) | Tailwind admin kit — patterns and components to copy.             |
 | [troubleshooting.md](troubleshooting.md)         | Symptom → cause → fix for the failure modes people actually hit.  |
 | [testing.md](testing.md)                         | Test layers, what belongs in each, and why three browser engines. |
 | [acceptance-criteria.md](acceptance-criteria.md) | Every specification criterion mapped to the test that backs it.   |

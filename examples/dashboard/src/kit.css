@@ -1,0 +1,327 @@
+/**
+ * Tailwind source for the admin kit.
+ *
+ * Built with `npm run kit:css` into `examples/dashboard/kit.css`, which is
+ * committed so a fresh clone opens the showcase without a build step.
+ *
+ * Two rules govern what belongs here:
+ *
+ * 1. Anything a component *toggles* is a semantic attribute — `hidden`,
+ *    `aria-expanded`, `data-state`, `aria-sort`. No component ever adds or
+ *    removes a class. That keeps the components usable under Bootstrap or plain
+ *    CSS, and it means no class name is ever constructed in JavaScript, which
+ *    is where Tailwind's build-time scan would silently miss it.
+ *
+ * 2. Component styling lives in `@layer components` so page-level utilities in
+ *    the markup always win. You can override any of this inline without
+ *    reaching for `!important`.
+ */
+
+@import 'tailwindcss';
+
+/* Tailwind v4 scans these paths for class names at build time. */
+@source '../index.html';
+@source '../js';
+
+/*
+ * Class-based dark mode.
+ *
+ * In v4 the `dark:` variant follows `prefers-color-scheme` unless you say
+ * otherwise, so a `.dark` class on <html> does nothing on its own. Admin
+ * applications almost always want an explicit user-controlled toggle that
+ * persists, which is what this enables.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-50: oklch(0.97 0.02 255);
+  --color-brand-100: oklch(0.93 0.05 255);
+  --color-brand-400: oklch(0.72 0.15 255);
+  --color-brand-500: oklch(0.62 0.19 255);
+  --color-brand-600: oklch(0.55 0.19 255);
+  --color-brand-700: oklch(0.47 0.17 255);
+}
+
+@layer components {
+  /* --- Dropdown ------------------------------------------------------- */
+
+  kit-dropdown {
+    @apply relative inline-block;
+  }
+
+  kit-dropdown [data-menu] {
+    @apply absolute z-20 mt-1 min-w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg;
+    @apply dark:border-slate-700 dark:bg-slate-800;
+  }
+
+  kit-dropdown[placement='bottom-end'] [data-menu] {
+    @apply right-0;
+  }
+
+  kit-dropdown [role='menuitem'] {
+    @apply flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700;
+    @apply hover:bg-slate-100 focus:bg-slate-100 focus:outline-none;
+    @apply dark:text-slate-200 dark:hover:bg-slate-700 dark:focus:bg-slate-700;
+  }
+
+  kit-dropdown [role='menuitem'][data-variant='danger'] {
+    @apply text-red-600 hover:bg-red-50 focus:bg-red-50 dark:text-red-400 dark:hover:bg-red-950;
+  }
+
+  /* --- Toasts --------------------------------------------------------- */
+
+  kit-toast-host {
+    @apply pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center p-4;
+    @apply sm:inset-x-auto sm:right-0 sm:items-end;
+  }
+
+  kit-toast-host [data-toast-list] {
+    @apply flex w-full max-w-sm flex-col gap-2;
+  }
+
+  kit-toast-host [data-toast] {
+    @apply pointer-events-auto relative rounded-lg border bg-white p-4 pr-10 shadow-lg;
+    @apply border-slate-200 dark:border-slate-700 dark:bg-slate-800;
+  }
+
+  kit-toast-host [data-toast][data-variant='success'] {
+    @apply border-l-4 border-l-emerald-500;
+  }
+
+  kit-toast-host [data-toast][data-variant='warning'] {
+    @apply border-l-4 border-l-amber-500;
+  }
+
+  kit-toast-host [data-toast][data-variant='error'] {
+    @apply border-l-4 border-l-red-500;
+  }
+
+  kit-toast-host [data-toast][data-variant='info'] {
+    @apply border-l-4 border-l-brand-500;
+  }
+
+  kit-toast-host [data-toast-title] {
+    @apply text-sm font-semibold text-slate-900 dark:text-slate-100;
+  }
+
+  kit-toast-host [data-toast-message] {
+    @apply mt-0.5 text-sm text-slate-600 dark:text-slate-400;
+  }
+
+  kit-toast-host [data-action='dismiss'] {
+    @apply absolute top-2 right-2 rounded p-1 text-lg leading-none text-slate-400;
+    @apply hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700;
+  }
+
+  /* --- Confirm dialog ------------------------------------------------- */
+
+  kit-confirm-dialog {
+    @apply contents;
+  }
+
+  /*
+   * `m-auto` is not decoration. A modal <dialog> is centred by the browser's
+   * default `margin: auto`, and Tailwind's preflight resets every margin to
+   * zero — so under Tailwind a native dialog silently pins itself to the top
+   * left. Restoring it here is the fix; this is exactly the kind of collision
+   * docs/21-styling.md means when it says components must integrate
+   * predictably with whatever CSS the host application brings.
+   */
+  kit-confirm-dialog dialog {
+    @apply m-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-0 shadow-2xl;
+    @apply backdrop:bg-slate-900/40 dark:border-slate-700 dark:bg-slate-800;
+  }
+
+  kit-confirm-dialog [data-panel] {
+    @apply p-6;
+  }
+
+  kit-confirm-dialog [data-title] {
+    @apply text-lg font-semibold text-slate-900 dark:text-slate-100;
+  }
+
+  kit-confirm-dialog [data-message] {
+    @apply mt-2 text-sm text-slate-600 dark:text-slate-400;
+  }
+
+  kit-confirm-dialog [data-actions] {
+    @apply mt-6 flex justify-end gap-2;
+  }
+
+  kit-confirm-dialog [data-action='cancel'] {
+    @apply kit-button-secondary;
+  }
+
+  kit-confirm-dialog [data-action='confirm'] {
+    @apply kit-button-primary;
+  }
+
+  kit-confirm-dialog dialog[data-variant='danger'] [data-action='confirm'] {
+    @apply bg-red-600 hover:bg-red-700;
+  }
+
+  /* --- Async button --------------------------------------------------- */
+
+  kit-async-button[busy] button {
+    @apply cursor-progress opacity-70;
+  }
+
+  /* --- Sortable table ------------------------------------------------- */
+
+  kit-sortable-table th[data-sort] {
+    @apply p-0;
+  }
+
+  kit-sortable-table [data-sort-button] {
+    @apply flex w-full items-center gap-1 px-4 py-3 text-left font-medium;
+    @apply hover:text-slate-900 dark:hover:text-slate-100;
+  }
+
+  kit-sortable-table th[aria-sort='ascending'] [data-sort-button]::after {
+    content: '↑';
+    @apply text-brand-600;
+  }
+
+  kit-sortable-table th[aria-sort='descending'] [data-sort-button]::after {
+    content: '↓';
+    @apply text-brand-600;
+  }
+
+  kit-sortable-table th[aria-sort='none'] [data-sort-button]::after {
+    content: '↕';
+    @apply text-slate-300 dark:text-slate-600;
+  }
+
+}
+
+/*
+ * Shared primitives are declared with `@utility`, not as plain classes in
+ * `@layer components`.
+ *
+ * In Tailwind v4 `@apply` resolves utilities only, so a class defined in a
+ * layer cannot be applied by another rule — which is what
+ * `@apply kit-button-secondary` above needs to do. `@utility` registers these
+ * as first-class utilities, so they compose with `@apply`, work with variants
+ * like `hover:` and `dark:`, and can be used directly in markup.
+ */
+
+@utility kit-card {
+  @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+  @apply dark:border-slate-700 dark:bg-slate-800;
+}
+
+@utility kit-card-header {
+  @apply flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4;
+  @apply dark:border-slate-700;
+}
+
+@utility kit-card-title {
+  @apply text-sm font-semibold text-slate-900 dark:text-slate-100;
+}
+
+@utility kit-card-body {
+  @apply p-5;
+}
+
+@utility kit-button-primary {
+  @apply inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-medium text-white;
+  @apply hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600;
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility kit-button-secondary {
+  @apply inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700;
+  @apply hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400;
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+  @apply dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700;
+}
+
+@utility kit-badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+}
+
+@utility kit-badge-success {
+  @apply kit-badge bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300;
+}
+
+@utility kit-badge-warning {
+  @apply kit-badge bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300;
+}
+
+@utility kit-badge-neutral {
+  @apply kit-badge bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200;
+}
+
+@utility kit-input {
+  @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900;
+  @apply focus:border-brand-500 focus:ring-2 focus:ring-brand-100 focus:outline-none;
+  @apply dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100;
+}
+
+@utility kit-label {
+  @apply mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300;
+}
+
+@layer components {
+  .kit-table {
+    @apply w-full text-left text-sm;
+  }
+
+  .kit-table thead {
+    @apply border-b border-slate-200 text-xs tracking-wide text-slate-500 uppercase;
+    @apply dark:border-slate-700 dark:text-slate-400;
+  }
+
+  .kit-table tbody tr {
+    @apply border-b border-slate-100 last:border-0 dark:border-slate-700/60;
+  }
+
+  .kit-table td {
+    @apply px-4 py-3 text-slate-700 dark:text-slate-300;
+  }
+}
+
+/* The reference components ship no styles of their own beyond structure, so the
+   showcase supplies the handful its markup needs. */
+@layer components {
+  vui-modal .vui-modal__dialog {
+    @apply m-auto w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-2xl;
+    @apply backdrop:bg-slate-900/40 dark:border-slate-700 dark:bg-slate-800;
+  }
+
+  vui-tabs [role='tablist'] {
+    @apply flex gap-1 border-b border-slate-200 dark:border-slate-700;
+  }
+
+  vui-tabs [role='tab'] {
+    @apply -mb-px border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-slate-500;
+    @apply hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200;
+  }
+
+  /* brand-500 on the dark surface measures 4.49:1 — just under AA. The lighter
+     step clears it; contrast is checked by the axe pass in tests/browser. */
+  vui-tabs [role='tab'][aria-selected='true'] {
+    @apply border-brand-600 text-brand-700 dark:border-brand-400 dark:text-brand-400;
+  }
+
+  vui-counter {
+    @apply inline-flex items-center gap-2;
+  }
+
+  vui-counter button {
+    @apply flex size-7 items-center justify-center rounded-md border border-slate-300 text-slate-600;
+    @apply hover:bg-slate-100 disabled:opacity-40 dark:border-slate-600 dark:text-slate-300;
+  }
+
+  vui-customer-selector .vui-customer-selector__list {
+    @apply mt-1 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800;
+  }
+
+  vui-customer-selector .vui-customer-selector__option {
+    @apply px-3 py-2 text-sm;
+  }
+
+  vui-customer-selector .vui-customer-selector__option.is-active {
+    @apply bg-brand-50 dark:bg-slate-700;
+  }
+}
