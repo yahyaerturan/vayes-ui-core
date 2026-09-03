@@ -7,6 +7,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
+## [1.1.1] — 2026-09-03
+
+### Documentation
+
+Full documentation set, covering adoption in an application that already exists:
+
+- `docs/README.md` — index, organised by what you are trying to do.
+- `docs/concepts.md` — the mental model in six ideas, each paired with the habit
+  it replaces.
+- `docs/getting-started.md` — a worked component with tests, in about ten
+  minutes.
+- `docs/existing-project.md` — adopting this incrementally in an existing
+  CodeIgniter application: how to obtain the code, how to serve it with or
+  without a bundler, boot configuration, making CSRF work, prefix policy,
+  converting the first widget, coexisting with the JavaScript already there, and
+  a migration order.
+- `docs/authoring-components.md` — writing a component start to finish, with the
+  full test matrix.
+- `docs/recipes.md` — fragment refresh, JSON form submission with server
+  validation, self-cancelling search, confirm-before-close, component
+  communication, accessible naming, loading state, scoped translations.
+- `docs/troubleshooting.md` — symptom, cause and fix for the failure modes that
+  actually occur.
+
+The tutorial's example is executable: it lives in `examples/toggle/Toggle.js`
+and `tests/browser/example-toggle.spec.js` and runs as part of the suite, and a
+unit test compares the guide's code against those files so the two cannot drift.
+
 ## [1.1.0] — 2026-09-03
 
 ### Added

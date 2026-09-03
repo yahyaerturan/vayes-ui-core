@@ -128,14 +128,22 @@ components still work under it with zero policy violations.
 
 ## Documentation
 
-| Document                                                   | Contents                                              |
-| ---------------------------------------------------------- | ----------------------------------------------------- |
-| [docs/core-api.md](docs/core-api.md)                       | Full public API reference                             |
-| [docs/ci4-integration.md](docs/ci4-integration.md)         | Wiring this into a CodeIgniter application            |
-| [docs/testing.md](docs/testing.md)                         | Test layers and required matrices                     |
-| [docs/acceptance-criteria.md](docs/acceptance-criteria.md) | Specification checklist mapped to tests               |
-| [docs/components/](docs/components/)                       | One specification per reference component             |
-| `vayes-ui-core-spec-pack/`                                 | The authoritative architecture specification and ADRs |
+Start at [docs/README.md](docs/README.md), or jump straight to what you need:
+
+| Document                                                     | Read it when                                                                |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| [docs/concepts.md](docs/concepts.md)                         | You want the mental model first — six ideas, and what each replaces         |
+| [docs/getting-started.md](docs/getting-started.md)           | You want a working, tested component in about ten minutes                   |
+| [docs/existing-project.md](docs/existing-project.md)         | **You already have a CodeIgniter app** and want to adopt this incrementally |
+| [docs/authoring-components.md](docs/authoring-components.md) | You are writing your own component, start to finish                         |
+| [docs/recipes.md](docs/recipes.md)                           | You have a specific task: a form, a filtered list, a confirm dialog         |
+| [docs/troubleshooting.md](docs/troubleshooting.md)           | Something does not work                                                     |
+| [docs/core-api.md](docs/core-api.md)                         | You need an exact signature, option or event contract                       |
+| [docs/ci4-integration.md](docs/ci4-integration.md)           | You are wiring boot config, CSRF, fragments or validation                   |
+| [docs/components/](docs/components/)                         | One full specification per reference component                              |
+| [docs/testing.md](docs/testing.md)                           | Test layers, and why three browser engines                                  |
+| [docs/acceptance-criteria.md](docs/acceptance-criteria.md)   | Every specification criterion mapped to its test                            |
+| `vayes-ui-core-spec-pack/`                                   | The authoritative architecture specification and ADRs                       |
 
 ## Browser support
 
