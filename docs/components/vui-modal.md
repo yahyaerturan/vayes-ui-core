@@ -96,7 +96,8 @@ None. Submitting a form inside the modal is the application's concern; see
 Semantics: native `<dialog>` in modal mode.
 Keyboard: Escape closes unless `no-dismiss` or a prevented pre-event; Tab is trapped inside by the platform.
 Focus: `showModal()` moves focus into the dialog; closing returns it to the invoker when that element is still connected.
-ARIA: put `aria-label` or `aria-labelledby` on `<vui-modal>` itself.
+ARIA: put `aria-label` or `aria-labelledby` on `<vui-modal>` itself; it is
+forwarded to the `<dialog>`. Changing the attribute later updates the name.
 
 ## Security
 

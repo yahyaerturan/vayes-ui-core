@@ -62,7 +62,7 @@ review rather than a test.
 | CI4 CSRF contract works, including rotation                   | ✔      | `ci4.spec.js` → “consecutive unsafe requests survive token rotation”, “a stale token is rejected” |
 | Request ID retained when supplied                             | ✔      | `ci4.spec.js` → “the response request id is retained on HttpError”                                |
 | Transport layer does not display UI                           | ✔      | `npm run arch:check` forbids DOM creation and mutation APIs in `core/Http*`                       |
-| Live CI4 tests cover JSON, fragment and protected write flows | ✔      | `ci4.spec.js` (24 tests)                                                                          |
+| Live CI4 tests cover JSON, fragment and protected write flows | ✔      | `ci4.spec.js` (26 tests) plus `accessibility.spec.js` (7 tests)                                   |
 
 ## Security
 
@@ -76,20 +76,20 @@ review rather than a test.
 
 ## Accessibility
 
-| Criterion                                   | Status | Evidence                                                                                                             |
-| ------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| Tabs and modal keyboard tests pass          | ✔      | `tabs.spec.js` (arrow/Home/End, manual activation), `modal.spec.js` (Escape, focus trap)                             |
-| Modal focus behaviour documented and tested | ✔      | `docs/components/vui-modal.md`; `modal.spec.js` → focus into dialog and back to invoker                              |
-| Loading/disabled state accessible           | ✔      | `customer-selector.spec.js` → `aria-busy` and the `role="status"` live region; `counter.spec.js` → native `disabled` |
-| Native semantics preferred                  | ◑      | `<button>`, `<output>`, `<dialog>`, `<input>` throughout; ARIA only where the pattern requires it                    |
+| Criterion                                   | Status | Evidence                                                                                                                                                                      |
+| ------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tabs and modal keyboard tests pass          | ✔      | `tabs.spec.js` (arrow/Home/End, manual activation), `modal.spec.js` (Escape, focus trap)                                                                                      |
+| Modal focus behaviour documented and tested | ✔      | `docs/components/vui-modal.md`; `modal.spec.js` → focus into dialog and back to invoker                                                                                       |
+| Loading/disabled state accessible           | ✔      | `customer-selector.spec.js` → `aria-busy` and the `role="status"` live region; `counter.spec.js` → native `disabled`                                                          |
+| Native semantics preferred                  | ◑      | `<button>`, `<output>`, `<dialog>`, `<input>` throughout; ARIA only where the pattern requires it. Partly mechanised: `accessibility.spec.js` audits every component with axe |
 
 ## Quality
 
 | Criterion                                   | Status | Evidence                                                                    |
 | ------------------------------------------- | ------ | --------------------------------------------------------------------------- |
 | Unit tests pass                             | ✔      | 75 tests                                                                    |
-| Real-browser lifecycle/event tests pass     | ✔      | 293 tests across Chromium, Firefox and WebKit                               |
-| CI4 integration tests pass                  | ✔      | 24 tests                                                                    |
+| Real-browser lifecycle/event tests pass     | ✔      | 304 tests across Chromium, Firefox and WebKit                               |
+| CI4 integration tests pass                  | ✔      | 33 tests                                                                    |
 | Lint/build pass                             | ✔      | `npm run lint`, `npm run build`                                             |
 | Public APIs documented                      | ✔      | `docs/core-api.md`, `docs/components/*.md`, JSDoc on every public member    |
 | Production runtime dependency list is empty | ✔      | `npm run deps:check`                                                        |
@@ -119,6 +119,29 @@ structural assertions — handler counts, node identity, scaling ratios — beca
 wall-clock timing on a shared CI runner is not a stable signal. Time budgets are
 generous by roughly an order of magnitude, so a budget is tripped by an
 architectural mistake, not a busy afternoon.
+
+### Two defects a clean audit missed
+
+Introducing axe produced zero violations across every component and every page
+state. Two real defects were present at that moment:
+
+1. **The modal's `<dialog>` was anonymous.** `aria-label` on `<vui-modal>` names
+   a host with a generic role, while the dialog role sits on the internal
+   `<dialog>`. axe's `aria-dialog-name` rule matches `[role="dialog"]`; a native
+   `<dialog>` has only an implicit role, so the rule never looked at it. The
+   component now forwards the host's ARIA to the dialog.
+
+2. **The combobox was named by its placeholder.** `<label for="customer-search">`
+   pointing at a custom element is inert — `label.control` is `null` — so the
+   only name the input had was its placeholder, which axe accepts as a
+   last-resort name. The component now resolves a name through four documented
+   routes and leaves the field unnamed rather than falling back to the
+   placeholder.
+
+The suite now asserts computed accessible names directly, by role _and_ name.
+This is the concrete case for docs/12-accessibility.md's rule that automated
+tooling is useful but not sufficient: a green audit was not evidence of an
+accessible component.
 
 ### A Chromium-shaped assertion, corrected
 

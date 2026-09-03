@@ -114,8 +114,8 @@ Keyboard: ArrowDown/ArrowUp move the active option (wrapping), Home/End jump, En
 Focus: focus stays in the input; option activation is conveyed with `aria-activedescendant`. A `mousedown` on an option is prevented so the list cannot collapse before the click lands.
 ARIA: `aria-expanded`, `aria-controls`, `aria-autocomplete="list"`, `aria-activedescendant`, `aria-selected` per option, and a `role="status"` live region for loading/empty/error messages.
 
-Associate a label with the element as usual; the internal input is in the Light
-DOM and participates normally.
+Naming is described under **Naming the field** above. The internal input lives
+in the Light DOM, so it participates in the document normally.
 
 ## Security
 

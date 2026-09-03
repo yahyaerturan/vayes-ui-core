@@ -7,6 +7,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
+## [1.1.0] — 2026-09-03
+
+### Added
+
+- An accessibility audit layer: axe over every component in isolation, and over
+  the live demo page in five states, backed by direct assertions on computed
+  accessible names.
+- `<vui-modal>` observes `aria-label` and `aria-labelledby` and forwards them to
+  the internal `<dialog>`.
+- `<vui-customer-selector>` observes `aria-label` and `aria-labelledby`, resolves
+  a `<label for="{host id}">` written against the host, gives its internal input
+  the stable id `{host id}-input`, and names the results listbox.
+
+### Fixed
+
+- **The modal's `<dialog>` had no accessible name.** `aria-label` written on
+  `<vui-modal>` landed on a host with a generic role while the dialog role sat on
+  the internal `<dialog>`, so assistive technology announced an unnamed dialog.
+- **The combobox was named by its placeholder.** A `<label for>` pointing at a
+  custom element is inert, leaving the placeholder as the only accessible name —
+  a name that disappears as soon as the user types.
+
+Neither defect was reported by axe: its `aria-dialog-name` rule matches
+`[role="dialog"]` and does not examine a native `<dialog>`, and it accepts a
+placeholder as a last-resort accessible name. Both are now covered by direct
+role-and-name assertions.
+
 ## [1.0.0] — 2026-09-03
 
 First stable release. Every criterion in

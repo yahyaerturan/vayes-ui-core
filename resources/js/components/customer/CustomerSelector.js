@@ -34,7 +34,7 @@ export class CustomerSelector extends Component {
 
     /** @returns {string[]} */
     static get observedAttributes() {
-        return ['disabled', 'placeholder'];
+        return ['disabled', 'placeholder', 'aria-label', 'aria-labelledby'];
     }
 
     /** @type {Readonly<{ minQuery: number, limit: number, debounce: number }>} */
@@ -221,6 +221,7 @@ export class CustomerSelector extends Component {
         };
 
         this.#applyPlaceholder();
+        this.#applyLabel();
         this.#renderSelection();
 
         // Publish the initial state so `[data-state]` is a reliable styling and
@@ -293,6 +294,10 @@ export class CustomerSelector extends Component {
 
         if (name === 'placeholder') {
             this.#applyPlaceholder();
+        }
+
+        if (name === 'aria-label' || name === 'aria-labelledby') {
+            this.#applyLabel();
         }
     }
 
@@ -606,6 +611,93 @@ export class CustomerSelector extends Component {
         this.#renderActiveOption();
     }
 
+    /**
+     * Give the combobox a real accessible name.
+     *
+     * A custom element is not a labelable element, so the natural authoring
+     * pattern — `<label for="customer-search">` next to
+     * `<vui-customer-selector id="customer-search">` — silently labels nothing:
+     * `label.control` is `null` and the internal input is unnamed.
+     *
+     * That defect survives an automated audit, because axe accepts a
+     * `placeholder` as a last-resort accessible name. A placeholder is a poor
+     * name: it disappears as soon as the user types, is frequently missed by
+     * translation, and is announced inconsistently. So the name is resolved
+     * explicitly here, in documented order:
+     *
+     * 1. `aria-labelledby` on the host, copied to the input;
+     * 2. `aria-label` on the host, copied to the input;
+     * 3. a `<label for="{host id}">` in the document — the label is given an id
+     *    if it lacks one, and the input points at it;
+     * 4. a native `<label for="{host id}-input">`, which already works and
+     *    needs nothing;
+     * 5. nothing, in which case the input is left unnamed rather than falling
+     *    back to the placeholder. That is an authoring error, and the test
+     *    suite asserts a real name rather than accepting the fallback.
+     *
+     * Standard ARIA is delegated rather than a bespoke `label` attribute being
+     * invented: authors already know these attributes, and this component
+     * already has a `labels` property for translated strings, which a
+     * near-identical `label` attribute would only confuse.
+     *
+     * @returns {void}
+     */
+    #applyLabel() {
+        if (!this.#elements) {
+            return;
+        }
+
+        const { input, list } = this.#elements;
+
+        // A stable, documented id so a consumer can also use a native
+        // `<label for>` and get click-to-focus for free.
+        if (this.id && !input.id) {
+            input.id = `${this.id}-input`;
+        }
+
+        const labelledBy = this.getAttribute('aria-labelledby');
+        const ariaLabel = this.getAttribute('aria-label');
+
+        /** @type {string|null} */
+        let name = null;
+
+        if (labelledBy) {
+            input.setAttribute('aria-labelledby', labelledBy);
+            input.removeAttribute('aria-label');
+            name = referencedText(labelledBy);
+        } else if (ariaLabel) {
+            input.setAttribute('aria-label', ariaLabel);
+            input.removeAttribute('aria-labelledby');
+            name = ariaLabel;
+        } else {
+            const external = this.id
+                ? document.querySelector(`label[for="${CSS.escape(this.id)}"]`)
+                : null;
+
+            if (external) {
+                if (!external.id) {
+                    external.id = `${this.#uid}-label`;
+                }
+
+                input.setAttribute('aria-labelledby', external.id);
+                input.removeAttribute('aria-label');
+                name = external.textContent?.trim() ?? null;
+            } else {
+                input.removeAttribute('aria-labelledby');
+                input.removeAttribute('aria-label');
+                name = input.labels?.[0]?.textContent?.trim() ?? null;
+            }
+        }
+
+        // The popup needs its own name; it is a separate widget in the
+        // accessibility tree from the field that controls it.
+        if (name) {
+            list.setAttribute('aria-label', name);
+        } else {
+            list.removeAttribute('aria-label');
+        }
+    }
+
     /** @returns {void} */
     #applyPlaceholder() {
         if (!this.#elements) {
@@ -760,6 +852,25 @@ export class CustomerSelector extends Component {
             this.#closeList();
         }
     };
+}
+
+/**
+ * Concatenated text of the elements an `aria-labelledby` token list references,
+ * following the accessible-name computation closely enough to reuse the value
+ * as the listbox's own label.
+ *
+ * @param {string} tokens Space-separated id reference list.
+ * @returns {string|null}
+ */
+function referencedText(tokens) {
+    const text = tokens
+        .trim()
+        .split(/\s+/)
+        .map(id => document.getElementById(id)?.textContent?.trim() ?? '')
+        .filter(Boolean)
+        .join(' ');
+
+    return text || null;
 }
 
 /**

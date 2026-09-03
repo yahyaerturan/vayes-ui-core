@@ -48,6 +48,36 @@ being flaky:
 They run on Chromium only: they measure our own algorithmic behaviour, which
 does not vary by engine.
 
+## The accessibility audit
+
+`tests/browser/accessibility.spec.js` runs axe over each component in isolation,
+scoped to the component subtree so that page-level findings (no landmarks, no
+`h1`) belong to the host application rather than the library.
+`tests/integration/accessibility.spec.js` audits the live demo page in each of
+its states: on load, with an AJAX fragment inserted, with the dialog open, with
+search results open, and with server validation errors shown.
+
+**The audit alone is not the test.** When axe was first introduced here it
+reported zero violations across every component and every page state — while two
+real naming defects were present:
+
+- the modal's `<dialog>` had no accessible name. Authors put `aria-label` on
+  `<vui-modal>`, but the dialog role lives on the internal `<dialog>`. axe's
+  `aria-dialog-name` rule matches `[role="dialog"]`, and a native `<dialog>`
+  carries only an implicit role, so the rule never examined it.
+- the combobox was named by its `placeholder`, because `<label for>` pointing at
+  a custom element is inert. axe accepts a placeholder as a last-resort
+  accessible name, so the rule passed on a name that vanishes as the user types.
+
+Both are fixed, and the suite now asserts computed accessible names directly by
+querying for a role _and_ its expected name. That is what docs/12-accessibility.md
+means by "automated accessibility tooling is useful but not sufficient",
+demonstrated rather than quoted.
+
+One trap worth knowing: Playwright matches accessible names by **substring**
+unless you pass `exact: true`. A test asserting `name: 'Via aria-label'` will
+happily match an element named `Via aria-labelledby`.
+
 ## The architecture gate
 
 `npm run arch:check` enforces invariants that were previously true only because

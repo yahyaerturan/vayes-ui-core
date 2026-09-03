@@ -64,6 +64,10 @@ first.
    rendering a failure state.
 6. **Adding a public API needs two call sites.** Prefer a private helper until
    then.
+7. **A green axe run is not an accessible component.** axe missed both naming
+   defects this project has had. Assert the computed accessible name by
+   querying for a role _and_ its name, and pass `exact: true` — Playwright
+   matches names by substring otherwise.
 
 ## Definition of done for a component
 

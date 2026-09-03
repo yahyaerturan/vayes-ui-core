@@ -41,7 +41,7 @@ import { define } from '../../core/register.js';
 export class Modal extends Component {
     /** @returns {string[]} */
     static get observedAttributes() {
-        return ['open'];
+        return ['open', 'aria-label', 'aria-labelledby'];
     }
 
     /** @type {HTMLDialogElement|null} */
@@ -108,6 +108,7 @@ export class Modal extends Component {
         dialog.append(content);
         this.append(dialog);
         this.#dialog = dialog;
+        this.#applyLabel();
     }
 
     /** @returns {void} */
@@ -177,11 +178,17 @@ export class Modal extends Component {
      * @returns {void}
      */
     attributeChangedCallback(name, oldValue, newValue) {
-        if (oldValue === newValue || this.#reflecting || !this.mounted) {
+        if (oldValue === newValue || this.#reflecting) {
             return;
         }
 
-        if (name !== 'open') {
+        if (name === 'aria-label' || name === 'aria-labelledby') {
+            this.#applyLabel();
+
+            return;
+        }
+
+        if (name !== 'open' || !this.mounted) {
             return;
         }
 
@@ -281,6 +288,51 @@ export class Modal extends Component {
         const shouldOpen = force ?? !this.isOpen;
 
         return shouldOpen ? this.open() : this.close();
+    }
+
+    /**
+     * Delegate the host's accessible name onto the `<dialog>`.
+     *
+     * The dialog role lives on the internal `<dialog>`, not on the host, so an
+     * `aria-label` written on `<vui-modal>` names an element with no role and
+     * leaves the dialog anonymous. Assistive technology then announces a dialog
+     * with no name, which is exactly the sort of defect an automated audit
+     * misses: axe's `aria-dialog-name` rule matches `[role="dialog"]`, and a
+     * native `<dialog>` has only an implicit role.
+     *
+     * Authors keep writing plain ARIA on the element they can see; the
+     * component forwards it to the element that needs it.
+     *
+     * @returns {void}
+     */
+    #applyLabel() {
+        const dialog = this.#dialog;
+
+        if (!dialog) {
+            return;
+        }
+
+        const labelledBy = this.getAttribute('aria-labelledby');
+        const label = this.getAttribute('aria-label');
+
+        // Id references resolve document-wide, so copying the attribute is
+        // enough — the referenced element does not need to move.
+        if (labelledBy) {
+            dialog.setAttribute('aria-labelledby', labelledBy);
+            dialog.removeAttribute('aria-label');
+
+            return;
+        }
+
+        if (label) {
+            dialog.setAttribute('aria-label', label);
+            dialog.removeAttribute('aria-labelledby');
+
+            return;
+        }
+
+        dialog.removeAttribute('aria-label');
+        dialog.removeAttribute('aria-labelledby');
     }
 
     /** @returns {HTMLDialogElement} */
