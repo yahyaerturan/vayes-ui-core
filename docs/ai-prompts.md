@@ -89,7 +89,7 @@ DELIVERABLES
    keyboard, and XSS-sensitive rendering.
 3. A specification in docs/components/, following COMPONENT_SPEC_TEMPLATE.md.
 
-Then run: npm run arch:check && npm run lint && npm run test:browser
+Then run: npm run arch:check && npm run css:check && npm run lint && npm run test:browser
 Fix what fails. Do not weaken a test to make it pass.
 ```
 
@@ -304,8 +304,8 @@ AFTER
 pass" produces markedly better components than asking for the component alone.
 It also stops the agent asserting that something works.
 
-**Make it run the gates.** End with `npm run arch:check && npm run lint &&
-npm run test:browser`. An agent that has seen its own failure fixes the real
+**Make it run the gates.** End with `npm run arch:check && npm run css:check &&
+npm run lint && npm run test:browser`. An agent that has seen its own failure fixes the real
 problem; one that has not will describe the code it hoped it wrote.
 
 **Reject "I weakened the test."** If an agent loosens an assertion to get green,
@@ -324,6 +324,7 @@ An agent will tell you it did them. Check:
 
 ```bash
 npm run arch:check     # layer boundaries, HTML sinks, dynamic globals
+npm run css:check      # physical inline-axis CSS that breaks under dir="rtl"
 npm run lint
 npm run test:browser   # all three engines
 git diff --stat        # did it touch resources/js/core/ ? it probably should not

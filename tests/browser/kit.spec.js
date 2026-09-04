@@ -102,6 +102,47 @@ test.describe('kit-dropdown', () => {
         await expect(page.locator('kit-dropdown [data-menu]').nth(0)).toBeHidden();
         await expect(page.locator('kit-dropdown [data-menu]').nth(1)).toBeVisible();
     });
+
+    /**
+     * `placement="bottom-end"` names a logical edge, so the CSS implementing it
+     * has to be logical too. Written with `right-0` the attribute and the layout
+     * agree under `dir="ltr"` and disagree under `dir="rtl"`, where the menu
+     * then opens off the wrong side of its trigger.
+     *
+     * Asserted geometrically rather than by auditing the page, because this is
+     * invisible to axe: the DOM, the roles, the names and the relationships are
+     * all identical in both directions, and all of them are correct. Only the
+     * boxes move.
+     */
+    for (const direction of ['ltr', 'rtl']) {
+        test(`a bottom-end menu hangs off the reading-end edge in ${direction}`, async ({
+            page,
+        }) => {
+            await page.evaluate(
+                dir => document.documentElement.setAttribute('dir', dir),
+                direction,
+            );
+
+            const dropdown = page.locator('kit-dropdown').first();
+            await dropdown.locator('[data-trigger]').click();
+
+            const menu = dropdown.locator('[data-menu]');
+            await expect(menu).toBeVisible();
+
+            const host = await dropdown.boundingBox();
+            const box = await menu.boundingBox();
+
+            // In LTR the inline-end edge is the right one; in RTL it is the left.
+            const inlineEnd = rect => (direction === 'rtl' ? rect.x : rect.x + rect.width);
+
+            expect(Math.abs(inlineEnd(box) - inlineEnd(host))).toBeLessThanOrEqual(1);
+
+            // The menu is wider than its trigger, so it must overhang on the
+            // start side. Without this the alignment check above would also
+            // pass for a menu that happened to be flush on both edges.
+            expect(box.width).toBeGreaterThan(host.width);
+        });
+    }
 });
 
 test.describe('kit-sortable-table', () => {

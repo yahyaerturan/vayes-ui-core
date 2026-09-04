@@ -103,7 +103,7 @@ before or after the markup existed. No initialisation pass runs, ever.
 
 | Command                    | Description                                       |
 | -------------------------- | ------------------------------------------------- |
-| `npm test`                 | Dependency gate + lint + all three test layers    |
+| `npm test`                 | Every gate + lint + all three test layers         |
 | `npm run test:unit`        | Node test runner                                  |
 | `npm run test:browser`     | Playwright, real Chromium                         |
 | `npm run test:integration` | Playwright against a live CodeIgniter app         |
@@ -111,6 +111,7 @@ before or after the markup existed. No initialisation pass runs, ever.
 | `npm run build`            | Optional Vite build to `public/build`             |
 | `npm run size`             | Core size and line-count budget                   |
 | `npm run deps:check`       | Fails if any runtime dependency appears           |
+| `npm run css:check`        | Fails on physical inline-axis CSS (RTL)           |
 | `npm run ci4:install`      | Prepare the demo app and seed its SQLite database |
 | `npm run ci4:serve`        | Serve the demo at <http://127.0.0.1:8081>         |
 

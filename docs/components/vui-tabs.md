@@ -95,6 +95,7 @@ None.
 
 Semantics: the server provides the ARIA tabs pattern; the component maintains its state.
 Keyboard: ArrowRight/ArrowDown next (wrapping), ArrowLeft/ArrowUp previous (wrapping), Home first, End last; in `manual` mode Enter and Space activate.
+Direction: when the tablist resolves to `direction: rtl` the horizontal arrows mirror — ArrowLeft is next, ArrowRight is previous — because "next" follows reading order rather than screen geometry. ArrowUp/ArrowDown, Home and End are unaffected: only the inline axis has a direction. The direction is read from the tablist's computed style on each keypress, so a nested `dir` and a runtime language switch both resolve correctly; the document's `dir` does not decide it. See [Bidirectional text](../authoring-components.md#bidirectional-text).
 Focus: a roving `tabindex` keeps exactly one tab in the tab order; selection moves focus to the selected tab.
 ARIA: `aria-selected` on tabs, `hidden` on panels, `aria-labelledby` linking panel to tab when the tab has an id.
 
@@ -123,6 +124,7 @@ Untrusted inputs: none. The component writes no text content.
 - [x] configuration (attribute, property, precedence, clamping)
 - [x] public events
 - [x] keyboard/focus (both activation modes)
+- [x] mirrored arrows in an RTL tablist, resolved from the tablist rather than the document
 - [x] dynamic insertion / `refresh()` after a fragment replacement
 - [x] nested component isolation
 - [x] malformed markup fails loudly

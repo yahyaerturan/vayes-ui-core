@@ -30,12 +30,13 @@ Never `core → component`, and never `HttpClient → any UI`.
 
 ## Enforced automatically
 
-| Gate              | Command              | Fails on                                                                                      |
-| ----------------- | -------------------- | --------------------------------------------------------------------------------------------- |
-| Dependency policy | `npm run deps:check` | Any production dependency, or any non-relative import in `resources/js`                       |
-| Lint              | `npm run lint`       | `eval`, implied eval, `new Function`, `javascript:` URLs, undeclared globals, unused bindings |
-| Size budget       | `npm run size`       | Core over 60 KB; reports code-line count against the 500–1,500 target                         |
-| Tests             | `npm test`           | All three layers                                                                              |
+| Gate              | Command              | Fails on                                                                                                |
+| ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------- |
+| Dependency policy | `npm run deps:check` | Any production dependency, or any non-relative import in `resources/js`                                 |
+| Writing direction | `npm run css:check`  | Physical inline-axis CSS (`right-0`, `pr-10`, `text-left`, `margin-left`) in hand-written CSS or markup |
+| Lint              | `npm run lint`       | `eval`, implied eval, `new Function`, `javascript:` URLs, undeclared globals, unused bindings           |
+| Size budget       | `npm run size`       | Core over 60 KB; reports code-line count against the 500–1,500 target                                   |
+| Tests             | `npm test`           | All three layers                                                                                        |
 
 ## Forbidden without an accepted ADR
 
@@ -68,6 +69,13 @@ first.
    defects this project has had. Assert the computed accessible name by
    querying for a role _and_ its name, and pass `exact: true` — Playwright
    matches names by substring otherwise.
+8. **Arrow keys have a direction; layout has a stylesheet.** Under `dir="rtl"` a
+   horizontal collection renders right-to-left, so ArrowRight moves to the
+   _previous_ item. That flip is the component's job, because it is behaviour.
+   Mirroring the layout is not: components carry no styling, so RTL layout is
+   the consumer's CSS. Read the direction from the element that lays the
+   collection out, never from `document.documentElement`. axe cannot see this
+   class of defect — the DOM and the ARIA are identical in both directions.
 
 ## Definition of done for a component
 

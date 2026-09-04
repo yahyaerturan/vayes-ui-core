@@ -297,6 +297,56 @@ setLoading(loading) {
 
 ---
 
+## Bidirectional text
+
+The line falls where the authority boundary already falls.
+
+**Layout is yours, not the library's.** Components carry no styling, so nothing
+in `resources/js/` knows or cares which way a page reads. Mirroring a layout
+under `dir="rtl"` is your CSS, and the way to write it is logical properties —
+`margin-inline-start`, `padding-inline-end`, `inset-inline-end`,
+`border-inline-start`, `text-align: start` — rather than the physical pairs.
+Tailwind spells the same set `ms-`, `pe-`, `end-`, `border-s-`, `text-start`.
+Get that right once and the page mirrors itself; get it wrong and no component
+can rescue you, because none of them ship a stylesheet to override.
+
+**Keyboard direction is the library's, not yours.** Arrow keys that move along
+the inline axis are behaviour, and behaviour is what a component owns. A
+horizontal collection laid out under `dir="rtl"` renders right-to-left, so
+there <kbd>→</kbd> moves to the _previous_ item: "next" follows reading order,
+not screen geometry. `<vui-tabs>` mirrors its horizontal arrows for exactly
+this reason.
+
+Three rules for implementing it:
+
+1. **Read the direction from the element that lays the collection out** — the
+   tablist, the menu, the toolbar. Not `document.documentElement.dir`: a
+   subtree carries its own direction, and an English report inside an Arabic
+   page (or the reverse) is the ordinary case, not the exotic one.
+   `getComputedStyle(element).direction` resolves inheritance for you; a `dir`
+   attribute check does not.
+2. **Read it per keypress, not once at mount.** A language switcher can flip
+   `dir` on a connected component, and one style read per arrow press is
+   cheaper than a wrong answer.
+3. **Mirror the inline axis only.** <kbd>↑</kbd> and <kbd>↓</kbd> never flip —
+   direction is a property of the inline axis. Neither do <kbd>Home</kbd> and
+   <kbd>End</kbd>, which already mean first and last rather than leftmost and
+   rightmost, nor <kbd>Enter</kbd>, <kbd>Space</kbd>, <kbd>Escape</kbd> or
+   <kbd>Tab</kbd>.
+
+The WAI-ARIA APG does not spell this out in its individual patterns. What it
+states is the principle the flip follows from: move focus in a pattern that
+matches the reading order of the page's language.
+
+Test it in a browser, with a real `dir="rtl"`. An automated audit will not find
+this class of defect — the DOM and the ARIA are both correct while the arrows
+walk backwards, so axe has nothing to report. Assert the focus moves, and
+assert it twice: once for an RTL collection, and once for a collection whose
+direction disagrees with the document's, which is the case a naive
+implementation gets wrong.
+
+---
+
 ## The test matrix
 
 | Scenario                                    | Required                      |

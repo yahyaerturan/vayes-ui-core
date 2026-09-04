@@ -97,6 +97,31 @@ untrusted — so it does not try. It forces each HTML write to be an annotated
 decision a reviewer must justify, which is the achievable guarantee and is worth
 more than a rule people remember only sometimes.
 
+## The writing-direction gate
+
+`npm run css:check` fails on hand-written CSS or markup that pins something to a
+physical edge on the inline axis — `right-0`, `pr-10`, `text-left`,
+`margin-left`, `border-l-4` — where the logical property would mirror correctly
+under `dir="rtl"`. The block axis has no direction and is left alone.
+
+It exists because this failure is silent in a way the other gates' are not.
+Components carry no styling, so RTL layout is entirely the consumer's CSS, and
+the admin kit is copied wholesale into real applications: a physical utility
+survives that copy as a bug in every RTL locale the application ever reaches.
+No test catches it either, because under `dir="rtl"` the DOM, the roles, the
+names and the ARIA relationships are all identical and all correct. Only the
+boxes move — so axe has nothing to report.
+
+The escape hatch works like `safe-html:`. Annotate the line, or the line above
+it, with `physical-css: <reason>` when a physical edge really is the right
+answer — a glyph that must not mirror, a deliberately LTR-locked code sample.
+Both are the same bargain: a static check cannot decide the question, so it
+forces the exception to be a decision someone wrote down.
+
+Direction-sensitive _keyboard_ behaviour is not covered here, because it is not
+styling. It belongs to the components and is tested behaviourally — see
+[Bidirectional text](authoring-components.md#bidirectional-text).
+
 ## Why the split is not negotiable
 
 `Component.js` cannot even be imported in Node: `HTMLElement` does not exist

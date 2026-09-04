@@ -78,7 +78,7 @@ review rather than a test.
 
 | Criterion                                   | Status | Evidence                                                                                                                                                                      |
 | ------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tabs and modal keyboard tests pass          | ✔      | `tabs.spec.js` (arrow/Home/End, manual activation), `modal.spec.js` (Escape, focus trap)                                                                                      |
+| Tabs and modal keyboard tests pass          | ✔      | `tabs.spec.js` (arrow/Home/End, manual activation, mirrored arrows under `dir="rtl"`), `modal.spec.js` (Escape, focus trap)                                                   |
 | Modal focus behaviour documented and tested | ✔      | `docs/components/vui-modal.md`; `modal.spec.js` → focus into dialog and back to invoker                                                                                       |
 | Loading/disabled state accessible           | ✔      | `customer-selector.spec.js` → `aria-busy` and the `role="status"` live region; `counter.spec.js` → native `disabled`                                                          |
 | Native semantics preferred                  | ◑      | `<button>`, `<output>`, `<dialog>`, `<input>` throughout; ARIA only where the pattern requires it. Partly mechanised: `accessibility.spec.js` audits every component with axe |
@@ -87,8 +87,8 @@ review rather than a test.
 
 | Criterion                                   | Status | Evidence                                                                    |
 | ------------------------------------------- | ------ | --------------------------------------------------------------------------- |
-| Unit tests pass                             | ✔      | 75 tests                                                                    |
-| Real-browser lifecycle/event tests pass     | ✔      | 304 tests across Chromium, Firefox and WebKit                               |
+| Unit tests pass                             | ✔      | 77 tests                                                                    |
+| Real-browser lifecycle/event tests pass     | ✔      | 507 tests across Chromium, Firefox and WebKit                               |
 | CI4 integration tests pass                  | ✔      | 33 tests                                                                    |
 | Lint/build pass                             | ✔      | `npm run lint`, `npm run build`                                             |
 | Public APIs documented                      | ✔      | `docs/core-api.md`, `docs/components/*.md`, JSDoc on every public member    |

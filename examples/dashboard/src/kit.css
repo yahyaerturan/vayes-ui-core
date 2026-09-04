@@ -75,11 +75,11 @@
   }
 
   kit-dropdown[placement='bottom-end'] [data-menu] {
-    @apply right-0;
+    @apply end-0;
   }
 
   kit-dropdown [role='menuitem'] {
-    @apply flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700;
+    @apply flex w-full items-center gap-2 rounded-md px-3 py-2 text-start text-sm text-slate-700;
     @apply hover:bg-slate-100 focus:bg-slate-100 focus:outline-none;
     @apply dark:text-slate-200 dark:hover:bg-slate-700 dark:focus:bg-slate-700;
   }
@@ -92,7 +92,7 @@
 
   kit-toast-host {
     @apply pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center p-4;
-    @apply sm:inset-x-auto sm:right-0 sm:items-end;
+    @apply sm:inset-x-auto sm:end-0 sm:items-end;
   }
 
   kit-toast-host [data-toast-list] {
@@ -100,24 +100,24 @@
   }
 
   kit-toast-host [data-toast] {
-    @apply pointer-events-auto relative rounded-lg border bg-white p-4 pr-10 shadow-lg;
+    @apply pointer-events-auto relative rounded-lg border bg-white p-4 pe-10 shadow-lg;
     @apply border-slate-200 dark:border-slate-700 dark:bg-slate-800;
   }
 
   kit-toast-host [data-toast][data-variant='success'] {
-    @apply border-l-4 border-l-emerald-500;
+    @apply border-s-4 border-s-emerald-500;
   }
 
   kit-toast-host [data-toast][data-variant='warning'] {
-    @apply border-l-4 border-l-amber-500;
+    @apply border-s-4 border-s-amber-500;
   }
 
   kit-toast-host [data-toast][data-variant='error'] {
-    @apply border-l-4 border-l-red-500;
+    @apply border-s-4 border-s-red-500;
   }
 
   kit-toast-host [data-toast][data-variant='info'] {
-    @apply border-l-4 border-l-brand-500;
+    @apply border-s-4 border-s-brand-500;
   }
 
   kit-toast-host [data-toast-title] {
@@ -129,7 +129,7 @@
   }
 
   kit-toast-host [data-action='dismiss'] {
-    @apply absolute top-2 right-2 rounded p-1 text-lg leading-none text-slate-400;
+    @apply absolute top-2 end-2 rounded p-1 text-lg leading-none text-slate-400;
     @apply hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700;
   }
 
@@ -197,7 +197,7 @@
   }
 
   kit-sortable-table [data-sort-button] {
-    @apply flex w-full items-center gap-1 px-4 py-3 text-left font-medium;
+    @apply flex w-full items-center gap-1 px-4 py-3 text-start font-medium;
     @apply hover:text-slate-900 dark:hover:text-slate-100;
   }
 
@@ -288,7 +288,7 @@
 
 @layer components {
   .kit-table {
-    @apply w-full text-left text-sm;
+    @apply w-full text-start text-sm;
   }
 
   .kit-table thead {

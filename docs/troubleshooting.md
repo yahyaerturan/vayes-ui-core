@@ -283,6 +283,42 @@ code should be using `textContent`.
 
 ---
 
+## `npm run css:check` fails on styling I meant to write
+
+The gate reads hand-written CSS and markup only, and it names the replacement in
+the failure:
+
+| Found                                   | Use instead                                                       |
+| --------------------------------------- | ----------------------------------------------------------------- |
+| `right-0`, `left-4`                     | `end-0`, `start-4`                                                |
+| `pl-*`, `pr-*`, `ml-*`, `mr-*`          | `ps-*`, `pe-*`, `ms-*`, `me-*`                                    |
+| `text-left`, `text-right`               | `text-start`, `text-end`                                          |
+| `border-l-*`, `border-r-*`              | `border-s-*`, `border-e-*`                                        |
+| `margin-left`, `padding-right`, `left:` | `margin-inline-start`, `padding-inline-end`, `inset-inline-start` |
+
+Three things it deliberately does not do:
+
+- **Block-axis styling is fine.** `top-2`, `mt-1`, `pb-4`, `border-b`,
+  `rounded-t` have no direction. So do `inset-x-0` and `space-x-*`, which
+  Tailwind v4 already compiles to inline-logical properties.
+- **`examples/dashboard/kit.css` is not read.** It is Tailwind's build output,
+  and its preflight reset legitimately contains physical properties. Fix
+  `examples/dashboard/src/kit.css` and run `npm run kit:css`.
+- **Prose is not read.** Utilities are taken from `@apply` declarations and
+  `class` attributes only, so "the right-hand column" in a comment is safe.
+
+If a physical edge genuinely is correct — a glyph that must not mirror, an
+LTR-locked code sample — annotate the line or the line above it:
+
+```css
+padding-left: 2rem; /* physical-css: ASCII diagram, mirroring breaks it */
+```
+
+Same bargain as `safe-html:`. If you cannot write a convincing reason, the
+styling should be logical.
+
+---
+
 ## Tests pass in Chromium and fail in WebKit
 
 Usually the test, not the code. Engines legitimately differ in how they

@@ -7,6 +7,78 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
+## [1.3.1] — 2026-09-05
+
+### Fixed
+
+- **Arrow keys walked backwards through an RTL tablist.** `<vui-tabs>` mapped
+  ArrowRight to the next tab and ArrowLeft to the previous one unconditionally.
+  Under `dir="rtl"` a horizontal tablist renders right-to-left, so the next tab
+  is the one on the *left* — "next" follows reading order, not screen geometry.
+  The horizontal keys now mirror when the tablist resolves to `direction: rtl`.
+  ArrowUp/ArrowDown, Home and End are untouched: only the inline axis has a
+  direction.
+
+  The direction is read from the tablist's computed style on each keypress, not
+  from `document.documentElement.dir`. A subtree carries its own direction — an
+  English report inside an Arabic page, or the reverse — and reading per keypress
+  means a language switcher takes effect on a component that is already
+  connected. The tablist is asked rather than the focused tab, because a tab may
+  carry `dir` for its own label without changing the order its siblings are laid
+  out in.
+
+  No automated audit would have found this. Under `dir="rtl"` the DOM, the roles,
+  the accessible names and the ARIA relationships are all identical and all
+  correct; only the focus order is wrong. It is now covered behaviourally, on all
+  three engines, including the case where the tablist's direction disagrees with
+  the document's.
+
+- **The admin kit pinned eleven sites to physical edges.** Most visibly
+  `kit-dropdown[placement='bottom-end']`, implemented with `right-0`: the
+  attribute was already named logically while the CSS was not, so a `bottom-end`
+  menu opened off the wrong side of its trigger under `dir="rtl"`. Also the four
+  toast severity stripes, which landed on the trailing edge where the eye never
+  reaches them, the dismiss-button gutter, three `text-left` sites and the
+  numeric table cells. All now logical — `end-0`, `pe-10`, `text-start`,
+  `border-s-4`, `text-end`.
+
+  This matters more than an ordinary example-code bug because the kit is offered
+  as something to copy wholesale, and a physical utility survives that copy as a
+  defect in every RTL locale the copying application ever reaches.
+
+### Added
+
+- `npm run css:check` — a writing-direction gate. Fails on physical inline-axis
+  CSS in hand-written stylesheets and markup, naming the logical replacement.
+  Block-axis styling is untouched, Tailwind's build output is not read, and
+  utilities are taken from `@apply` declarations and `class` attributes only, so
+  prose is safe. Where a physical edge really is correct, a
+  `physical-css: <reason>` annotation on the line or the line above it is the
+  escape hatch — the same bargain as `safe-html:`, which is that a static check
+  cannot decide the question, so it forces the exception to be written down.
+
+  Added because the geometric test above covers exactly one of the eleven sites.
+  The stripes, the alignments and the gutter have no assertable anchor point, and
+  the real failure mode is the twelfth site rather than the eleven now fixed.
+
+- `docs/authoring-components.md` — a "Bidirectional text" section stating where
+  the boundary falls: layout is the consumer's CSS, because components carry no
+  styling; direction-sensitive keyboard behaviour is the component's, because it
+  is behaviour. With the three rules for implementing it — read the direction
+  from the element that lays the collection out, read it per keypress, mirror the
+  inline axis only.
+
+- `docs/testing.md` and `docs/troubleshooting.md` cover the new gate, and
+  `AGENTS.md` gains it as a mechanised gate plus an eighth entry in "Rules that
+  catch people out".
+
+### Note
+
+The specification in `vayes-ui-core-spec-pack/` says nothing about bidirectional
+text — neither `12-accessibility.md` nor `21-styling.md` mentions direction. The
+contract above was written into `docs/` rather than into the specification, and
+should be folded back into the spec pack when it is next revised.
+
 ## [1.3.0] — 2026-09-04
 
 ### Added

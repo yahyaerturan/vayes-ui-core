@@ -153,7 +153,7 @@ DataTable for good reason.
 
 ---
 
-## Two rules that make the styling work
+## Three rules that make the styling work
 
 **1. No component contains a Tailwind class.** Components toggle semantic state
 — `hidden`, `aria-expanded`, `data-state`, `aria-sort` — and all styling lives
@@ -165,6 +165,20 @@ which is where Tailwind's build-time scan would silently miss it.
 `@apply` resolves utilities only, so `@apply kit-button-secondary` fails if
 `kit-button-secondary` is an ordinary class. `@utility` makes them composable
 and usable with variants.
+
+**3. Every inline-axis utility is logical, never physical.** `end-0` not
+`right-0`, `pe-10` not `pr-10`, `text-start` not `text-left`, `border-s-4` not
+`border-l-4`. The kit is copied wholesale into real applications, and a physical
+utility survives that copy as a bug in every RTL locale the application ever
+reaches. The dropdown is the sharp case: `kit-dropdown[placement='bottom-end']`
+is already named logically, so implementing it with `right-0` would open a
+`bottom-end` menu on the wrong side under `dir="rtl"` — the attribute promising
+one thing and the CSS doing another. Block-axis utilities have no direction and
+stay physical: `top-2`, `mt-1`, `bottom-0`.
+
+Layout is the only half of RTL that lives here. Direction-sensitive keyboard
+behaviour belongs to the components and is already handled — see
+[Bidirectional text](../../docs/authoring-components.md#bidirectional-text).
 
 ### Three collisions worth knowing about
 

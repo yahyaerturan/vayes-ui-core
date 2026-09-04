@@ -20,6 +20,7 @@ jobs:
       - run: npm ci
       - run: npm run deps:check
       - run: npm run arch:check
+      - run: npm run css:check
       - run: npm run lint
       - run: npm run format:check
       - run: npm run test:unit

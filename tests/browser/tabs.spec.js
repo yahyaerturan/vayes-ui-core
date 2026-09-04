@@ -98,6 +98,60 @@ test.describe('<vui-tabs>', () => {
         await expect(page.locator('#tab-notes')).toBeFocused();
     });
 
+    /**
+     * Under `dir="rtl"` a horizontal tablist is laid out right-to-left, so the
+     * key that moves to the next tab is ArrowLeft. Without the flip the arrows
+     * walk backwards through every RTL tablist — a defect no axe rule can see,
+     * because the DOM and the ARIA are both perfectly correct.
+     */
+    test('arrow keys follow reading order in an RTL tablist', async ({ page }) => {
+        await mount(page, MARKUP.replace('role="tablist"', 'role="tablist" dir="rtl"'));
+
+        await page.locator('#tab-general').focus();
+
+        // ArrowLeft is "next": the second tab renders to the left of the first.
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator('#tab-billing')).toBeFocused();
+        await expect(page.locator('#panel-billing')).toBeVisible();
+
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator('#tab-general')).toBeFocused();
+
+        // Wrapping still works, in the mirrored direction.
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator('#tab-notes')).toBeFocused();
+
+        // The block axis never mirrors: only the inline axis has a direction.
+        await page.keyboard.press('ArrowDown');
+        await expect(page.locator('#tab-general')).toBeFocused();
+
+        await page.keyboard.press('ArrowUp');
+        await expect(page.locator('#tab-notes')).toBeFocused();
+
+        // Home and End are already logical — first and last, not left and right.
+        await page.keyboard.press('Home');
+        await expect(page.locator('#tab-general')).toBeFocused();
+
+        await page.keyboard.press('End');
+        await expect(page.locator('#tab-notes')).toBeFocused();
+    });
+
+    /**
+     * The direction that matters is the tablist's own, not the document's. An
+     * LTR quotation, table or embedded report inside an RTL page is the common
+     * case, and a check against `document.documentElement.dir` gets it wrong in
+     * exactly this configuration.
+     */
+    test('direction is read from the tablist, not the document', async ({ page }) => {
+        await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'));
+        await mount(page, MARKUP.replace('role="tablist"', 'role="tablist" dir="ltr"'));
+
+        await page.locator('#tab-general').focus();
+        await page.keyboard.press('ArrowRight');
+
+        await expect(page.locator('#tab-billing')).toBeFocused();
+    });
+
     test('manual activation moves focus without selecting until Enter or Space', async ({
         page,
     }) => {

@@ -16,6 +16,17 @@ import { define } from '../../core/register.js';
 const NAVIGATION_KEYS = new Set(['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End']);
 
 /**
+ * How the horizontal arrows read when the tablist runs right-to-left.
+ *
+ * Only the inline axis reverses: ArrowUp/ArrowDown keep their meaning, and
+ * Home/End are already logical — first and last, not leftmost and rightmost.
+ */
+const MIRRORED_KEYS = new Map([
+    ['ArrowRight', 'ArrowLeft'],
+    ['ArrowLeft', 'ArrowRight'],
+]);
+
+/**
  * Accessible tabs over server-rendered markup.
  *
  * Expected markup: an element with `role="tablist"` containing
@@ -42,6 +53,14 @@ export class Tabs extends Component {
 
     /** @type {HTMLElement[]} */
     #panels = [];
+
+    /**
+     * The element the tabs were collected from. Kept because it is also the
+     * element whose writing direction decides which way the arrow keys point.
+     *
+     * @type {Element|null}
+     */
+    #tablist = null;
 
     /**
      * Index requested before the tabs were collected, e.g. by a property
@@ -111,6 +130,7 @@ export class Tabs extends Component {
     unmount() {
         this.#tabs = [];
         this.#panels = [];
+        this.#tablist = null;
     }
 
     /**
@@ -190,6 +210,7 @@ export class Tabs extends Component {
     /** @returns {void} */
     #collect() {
         const tablist = this.querySelector('[role="tablist"]') ?? this;
+        this.#tablist = tablist;
 
         this.#tabs = /** @type {HTMLElement[]} */ (
             Array.from(tablist.querySelectorAll('[role="tab"]')).filter(tab => this.#ownsNode(tab))
@@ -327,6 +348,40 @@ export class Tabs extends Component {
     };
 
     /**
+     * A navigation key expressed on the logical axis, so the rest of the
+     * handler can reason in "next" and "previous" rather than left and right.
+     *
+     * A horizontal tablist laid out under `dir="rtl"` runs right-to-left, so
+     * there ArrowRight moves to the *previous* tab. The direction is read from
+     * computed style on the tablist rather than from `document.documentElement`,
+     * because a subtree carries its own direction: an Arabic section inside an
+     * English page is the ordinary case, and it is precisely where a check
+     * against the document goes wrong. The tablist is asked rather than the
+     * focused tab, because a tab may carry `dir` for its own label without
+     * changing the order its siblings are laid out in.
+     *
+     * Style is read per keypress rather than cached at mount: a language
+     * switcher may flip `dir` while the component is connected, and one
+     * `getComputedStyle` per arrow press is not a cost worth a stale answer.
+     *
+     * The WAI-ARIA APG does not state this flip in the tabs pattern itself. Its
+     * general rule — move focus in a pattern matching the reading order of the
+     * page's language — is what it follows from.
+     *
+     * @param {string} key
+     * @returns {string}
+     */
+    #navigationKey(key) {
+        const element = this.#tablist ?? this;
+
+        if (getComputedStyle(element).direction !== 'rtl') {
+            return key;
+        }
+
+        return MIRRORED_KEYS.get(key) ?? key;
+    }
+
+    /**
      * @param {KeyboardEvent} event
      * @returns {void}
      */
@@ -360,7 +415,7 @@ export class Tabs extends Component {
         const last = this.#tabs.length - 1;
         let next = current;
 
-        switch (event.key) {
+        switch (this.#navigationKey(event.key)) {
             case 'ArrowRight':
             case 'ArrowDown':
                 next = current === last ? 0 : current + 1;
