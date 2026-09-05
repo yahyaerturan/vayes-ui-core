@@ -70,8 +70,10 @@ announces itself.
 
 ## Internal state
 
-`#selectedIndex`, the collected `#tabs`/`#panels` arrays, and `#pendingIndex`
-for a selection requested before the tabs were collected.
+`#selectedIndex`, the collected `#tabs`/`#panels` arrays, `#tablist` (the
+element they were collected from, and the one whose direction and orientation
+decide the keys), and `#pendingIndex` for a selection requested before the tabs
+were collected.
 
 ## DOM contract
 
@@ -79,6 +81,7 @@ Server-owned markup: the tablist, tabs and panels.
 Component-owned markup: none.
 Stable selectors: `[role="tablist"]`, `[role="tab"]`, `[role="tabpanel"]`.
 Attributes the component writes: `aria-selected`, `tabindex`, `hidden`, `aria-labelledby`.
+Attributes the component reads but never writes: `aria-orientation` and `dir` on the tablist. Both are the server's to set.
 Focus-sensitive elements: the tabs. Panels are shown and hidden with the `hidden` property; their contents are never recreated.
 
 Descendants may be replaced dynamically; call `refresh()` afterwards.
@@ -94,7 +97,8 @@ None.
 ## Accessibility
 
 Semantics: the server provides the ARIA tabs pattern; the component maintains its state.
-Keyboard: ArrowRight/ArrowDown next (wrapping), ArrowLeft/ArrowUp previous (wrapping), Home first, End last; in `manual` mode Enter and Space activate.
+Keyboard: Home first, End last; in `manual` mode Enter and Space activate. Which arrows navigate depends on the orientation.
+Orientation: read from `aria-orientation` on the tablist, defaulting to `horizontal` as ARIA does. A horizontal tablist navigates with ArrowRight/ArrowLeft (wrapping) and leaves ArrowUp/ArrowDown to the page, so a keyboard user keeps normal scrolling — the APG states this explicitly. A vertical tablist is the mirror of that arrangement: ArrowDown/ArrowUp navigate, ArrowRight/ArrowLeft pass through.
 Direction: when the tablist resolves to `direction: rtl` the horizontal arrows mirror — ArrowLeft is next, ArrowRight is previous — because "next" follows reading order rather than screen geometry. ArrowUp/ArrowDown, Home and End are unaffected: only the inline axis has a direction. The direction is read from the tablist's computed style on each keypress, so a nested `dir` and a runtime language switch both resolve correctly; the document's `dir` does not decide it. See [Bidirectional text](../authoring-components.md#bidirectional-text).
 Focus: a roving `tabindex` keeps exactly one tab in the tab order; selection moves focus to the selected tab.
 ARIA: `aria-selected` on tabs, `hidden` on panels, `aria-labelledby` linking panel to tab when the tab has an id.
@@ -125,6 +129,7 @@ Untrusted inputs: none. The component writes no text content.
 - [x] public events
 - [x] keyboard/focus (both activation modes)
 - [x] mirrored arrows in an RTL tablist, resolved from the tablist rather than the document
+- [x] orientation: the unused axis reaches the page, in both `horizontal` and `vertical`
 - [x] dynamic insertion / `refresh()` after a fragment replacement
 - [x] nested component isolation
 - [x] malformed markup fails loudly

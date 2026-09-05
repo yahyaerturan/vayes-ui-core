@@ -125,7 +125,7 @@ static files and use Route A's `<script type="module">` approach.
 ### 4. Updating
 
 ```bash
-npm install github:yahyaerturan/vayes-ui-core#v1.3.1
+npm install github:yahyaerturan/vayes-ui-core#v1.4.0
 ```
 
 Read the [CHANGELOG](../CHANGELOG.md) first. Component tags, methods,

@@ -7,6 +7,46 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Component tag names, public methods, attributes, properties and emitted event
 contracts are all versioned API (docs/18-maintenance-versioning.md).
 
+## [1.4.0] — 2026-09-05
+
+### Changed
+
+- **A horizontal `<vui-tabs>` no longer responds to ArrowUp/ArrowDown.** It used
+  to treat them as previous/next regardless of orientation, which meant a
+  keyboard user who had tabbed into a tablist lost the ability to scroll the
+  page — the arrow key went to the component instead of the document. The APG
+  is explicit about why not: "If the tab list is horizontal, it does not listen
+  for Down Arrow or Up Arrow so those keys can provide their normal browser
+  scrolling functions."
+
+  This removes documented behaviour, so it is called out rather than filed as a
+  fix. If a tablist relied on the vertical keys, mark it up as what it is:
+  `<div role="tablist" aria-orientation="vertical">`. Horizontal tablists — the
+  default, and every one in this repository — keep ArrowRight/ArrowLeft, Home
+  and End exactly as before.
+
+### Added
+
+- **`aria-orientation` on the tablist is now read.** Absent means `horizontal`,
+  as ARIA specifies; it is not a guess. A vertical tablist navigates with
+  ArrowDown/ArrowUp and leaves ArrowRight/ArrowLeft to the page, which is the
+  same rule as above applied to the other axis. The attribute is read and never
+  written: the server owns the markup in this component's enhancement mode.
+
+  Nothing mirrors in a vertical tablist. Direction is a property of the inline
+  axis, and the keys that navigate there are the block-axis ones — so a vertical
+  tablist behaves identically in Arabic and in English.
+
+- Four browser tests covering both orientations on all three engines, including
+  that the unused axis reaches the page, and `docs/authoring-components.md`
+  gains the general rule: do not swallow a key you do not navigate with.
+
+### Note
+
+`<kit-dropdown>` and `<vui-customer-selector>` were audited for the same defect
+and are clean — both already listen on one axis only, and the selector never
+touches ArrowLeft/ArrowRight, so the text caret in its input still works.
+
 ## [1.3.1] — 2026-09-05
 
 ### Fixed

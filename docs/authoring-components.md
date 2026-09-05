@@ -286,6 +286,14 @@ Forward the host's `aria-label` and `aria-labelledby` to the internal control;
 Never let a `placeholder` be the accessible name. It disappears as the user
 types, and an automated audit will still pass.
 
+**Do not swallow a key you do not navigate with.** `preventDefault()` on an
+arrow key takes page scrolling away from a keyboard user, so a component should
+consume only the axis it actually moves on. The APG says this for tabs — "if the
+tab list is horizontal, it does not listen for Down Arrow or Up Arrow so those
+keys can provide their normal browser scrolling functions" — and the same holds
+for any roving-focus collection. Read `aria-orientation` and act on one axis;
+leave the other to the browser.
+
 Update ARIA alongside the visual change:
 
 ```js

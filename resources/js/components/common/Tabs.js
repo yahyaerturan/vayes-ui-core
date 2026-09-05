@@ -12,8 +12,23 @@
 import { Component } from '../../core/Component.js';
 import { define } from '../../core/register.js';
 
-/** Keys that move selection or focus within a tablist. */
-const NAVIGATION_KEYS = new Set(['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End']);
+/**
+ * The arrow keys each orientation navigates with.
+ *
+ * The other axis is deliberately left alone. The APG states the horizontal case
+ * — "If the tab list is horizontal, it does not listen for Down Arrow or Up
+ * Arrow so those keys can provide their normal browser scrolling functions" —
+ * and a keyboard user who has tabbed into a tablist should not lose the ability
+ * to move down the page. A vertical tablist has the same reason to leave the
+ * inline axis to the page.
+ */
+const AXIS_KEYS = {
+    horizontal: new Set(['ArrowRight', 'ArrowLeft']),
+    vertical: new Set(['ArrowDown', 'ArrowUp']),
+};
+
+/** Keys that move within a tablist in either orientation. */
+const EDGE_KEYS = new Set(['Home', 'End']);
 
 /**
  * How the horizontal arrows read when the tablist runs right-to-left.
@@ -348,6 +363,22 @@ export class Tabs extends Component {
     };
 
     /**
+     * The axis this tablist navigates on.
+     *
+     * A `tablist` is horizontal unless it says otherwise — that is the ARIA
+     * default, not a guess — so an absent `aria-orientation` means horizontal.
+     * The server owns the markup in this component's enhancement mode, so the
+     * attribute is read rather than written.
+     *
+     * @returns {'horizontal'|'vertical'}
+     */
+    #orientation() {
+        const element = this.#tablist ?? this;
+
+        return element.getAttribute('aria-orientation') === 'vertical' ? 'vertical' : 'horizontal';
+    }
+
+    /**
      * A navigation key expressed on the logical axis, so the rest of the
      * handler can reason in "next" and "previous" rather than left and right.
      *
@@ -406,7 +437,13 @@ export class Tabs extends Component {
             return;
         }
 
-        if (!NAVIGATION_KEYS.has(event.key)) {
+        const orientation = this.#orientation();
+
+        // Direction applies to the inline axis, so there is nothing to mirror
+        // in a vertical tablist — and nothing to gain from reading style there.
+        const key = orientation === 'horizontal' ? this.#navigationKey(event.key) : event.key;
+
+        if (!AXIS_KEYS[orientation].has(key) && !EDGE_KEYS.has(key)) {
             return;
         }
 
@@ -415,7 +452,7 @@ export class Tabs extends Component {
         const last = this.#tabs.length - 1;
         let next = current;
 
-        switch (this.#navigationKey(event.key)) {
+        switch (key) {
             case 'ArrowRight':
             case 'ArrowDown':
                 next = current === last ? 0 : current + 1;

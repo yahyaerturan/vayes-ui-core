@@ -13,6 +13,39 @@ const MARKUP = `
 </vui-tabs>`;
 
 /**
+ * Press a key and report whether the component consumed it.
+ *
+ * The listener is on `document`, so it runs after the component's handler has
+ * bubbled past and `defaultPrevented` reflects the component's decision.
+ *
+ * Consumption is the contract worth asserting, rather than the page scrolling
+ * that follows from it: WebKit drops the first ArrowDown after a programmatic
+ * `focus()` — verified, it scrolls on the second and every press after — so a
+ * scroll assertion is flaky without being any more meaningful. Whether the page
+ * moves is the browser's business; not taking the key away is ours.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} key
+ * @returns {Promise<boolean>}
+ */
+async function pressAndReportConsumed(page, key) {
+    await page.evaluate(() => {
+        window.__consumed = null;
+        document.addEventListener(
+            'keydown',
+            event => {
+                window.__consumed = event.defaultPrevented;
+            },
+            { once: true },
+        );
+    });
+
+    await page.keyboard.press(key);
+
+    return page.evaluate(() => window.__consumed);
+}
+
+/**
  * @param {import('@playwright/test').Page} page
  * @param {string} [markup]
  */
@@ -121,19 +154,100 @@ test.describe('<vui-tabs>', () => {
         await page.keyboard.press('ArrowRight');
         await expect(page.locator('#tab-notes')).toBeFocused();
 
-        // The block axis never mirrors: only the inline axis has a direction.
-        await page.keyboard.press('ArrowDown');
-        await expect(page.locator('#tab-general')).toBeFocused();
-
-        await page.keyboard.press('ArrowUp');
-        await expect(page.locator('#tab-notes')).toBeFocused();
-
         // Home and End are already logical — first and last, not left and right.
         await page.keyboard.press('Home');
         await expect(page.locator('#tab-general')).toBeFocused();
 
         await page.keyboard.press('End');
         await expect(page.locator('#tab-notes')).toBeFocused();
+    });
+
+    /**
+     * A tablist is horizontal unless it says otherwise, and the APG is explicit
+     * about the consequence: "If the tab list is horizontal, it does not listen
+     * for Down Arrow or Up Arrow so those keys can provide their normal browser
+     * scrolling functions."
+     *
+     * A keyboard user who has tabbed into a tablist should not lose the ability
+     * to move down the page. See `pressAndReportConsumed` for why the assertion
+     * is on consumption rather than on the scroll itself.
+     */
+    test('a horizontal tablist leaves ArrowDown to the page', async ({ page }) => {
+        await mount(page);
+        await page.locator('#tab-general').focus();
+
+        expect(await pressAndReportConsumed(page, 'ArrowDown')).toBe(false);
+        await expect(page.locator('#tab-general')).toBeFocused();
+        await expect(page.locator('#panel-general')).toBeVisible();
+    });
+
+    /**
+     * The APG's substitution for a vertical tablist: "Down Arrow performs as
+     * Right Arrow is described above. Up Arrow performs as Left Arrow."
+     */
+    test('a vertical tablist navigates with ArrowDown and ArrowUp', async ({ page }) => {
+        await mount(
+            page,
+            MARKUP.replace('role="tablist"', 'role="tablist" aria-orientation="vertical"'),
+        );
+
+        await page.locator('#tab-general').focus();
+
+        await page.keyboard.press('ArrowDown');
+        await expect(page.locator('#tab-billing')).toBeFocused();
+        await expect(page.locator('#panel-billing')).toBeVisible();
+
+        await page.keyboard.press('ArrowUp');
+        await expect(page.locator('#tab-general')).toBeFocused();
+
+        // Wrapping, in the block direction.
+        await page.keyboard.press('ArrowUp');
+        await expect(page.locator('#tab-notes')).toBeFocused();
+
+        // Home and End belong to neither axis and work in both orientations.
+        await page.keyboard.press('Home');
+        await expect(page.locator('#tab-general')).toBeFocused();
+
+        await page.keyboard.press('End');
+        await expect(page.locator('#tab-notes')).toBeFocused();
+    });
+
+    /**
+     * The complement of the rule above. The APG states the horizontal case
+     * because that is where a swallowed key costs the user page scrolling; a
+     * vertical tablist has the same reason to leave the other axis alone, and
+     * every mainstream implementation does.
+     */
+    test('a vertical tablist leaves ArrowRight to the page', async ({ page }) => {
+        await mount(
+            page,
+            MARKUP.replace('role="tablist"', 'role="tablist" aria-orientation="vertical"'),
+        );
+        await page.locator('#tab-general').focus();
+
+        expect(await pressAndReportConsumed(page, 'ArrowRight')).toBe(false);
+        await expect(page.locator('#tab-general')).toBeFocused();
+        await expect(page.locator('#panel-general')).toBeVisible();
+    });
+
+    /**
+     * Direction is a property of the inline axis, so a vertical tablist
+     * navigates the same way in Arabic as in English. Nothing to mirror: the
+     * keys that move are the block-axis ones.
+     */
+    test('a vertical tablist does not mirror under RTL', async ({ page }) => {
+        await mount(
+            page,
+            MARKUP.replace(
+                'role="tablist"',
+                'role="tablist" dir="rtl" aria-orientation="vertical"',
+            ),
+        );
+
+        await page.locator('#tab-general').focus();
+        await page.keyboard.press('ArrowDown');
+
+        await expect(page.locator('#tab-billing')).toBeFocused();
     });
 
     /**
